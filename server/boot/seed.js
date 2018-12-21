@@ -32,10 +32,32 @@ async function seedRoles(app) {
   const roles = [{ name: "admin" }, { name: "member" }];
   for (const role of roles) {
     // eslint-disable-next-line
-    await UserRole.findOrCreate({ name: role.name }, role);
+    await UserRole.findOrCreate({ where:{name: role.name} }, role);
   }
 }
 
+async function seedMembers(app) {
+  const { UserAccount, UserRole } = app.models;
+  const users = [
+    {
+      fullName: "testa",
+      email: "testa@ahadoo.com",
+      password: "testa"
+    }
+  ];
+  const memberRole = await UserRole.findOne({
+    where: { name: "member" }
+  });
+
+  if (!memberRole) {
+    throw error("Unable to find member role");
+  }
+  for (const user of users) {
+    user.roleId = memberRole.id;
+    // eslint-disable-next-line
+    await UserAccount.findOrCreate({ where: { email: user.email } }, user);
+  }
+}
 async function seedAdmins(app) {
   const { UserAccount, UserRole } = app.models;
   const users = [
@@ -63,6 +85,7 @@ module.exports = async function(app) {
   app.logger.info("Seeding started");
   await seedRoles(app);
   await seedAdmins(app);
+  await seedMembers(app);
   await seedCategories(app);
   await seedTags(app);
   app.logger.info("Seeding complete");
