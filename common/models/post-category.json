@@ -1,6 +1,6 @@
 {
-  "name": "UserRole",
-  "base": "Role",
+  "name": "PostCategory",
+  "base": "PersistedModel",
   "strict": true,
   "idInjection": true,
   "options": {
@@ -13,20 +13,11 @@
   },
   "properties": {
     "name": {
-      "type": "string",
-      "required": true
-    },
-    "description": {
       "type": "string"
     }
   },
   "validations": [],
-  "relations": {
-    "userAccounts": {
-      "type": "hasMany",
-      "model": "UserAccount"
-    }
-  },
+  "relations": {},
   "acls": [],
   "methods": {}
 }

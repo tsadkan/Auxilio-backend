@@ -34,19 +34,38 @@
   "UserAccount": {
     "dataSource": "mongo",
     "public": true,
-    "options":{
-      "remoting":{
-        "sharedMethods":{
-          "*":false,
-          "login":true,
-          "logout":true,
-          "registerMember":true
-         
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "login": true,
+          "logout": true,
+          "registerMember": true
         }
       }
     }
   },
   "UserRole": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "PostCategory": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "Tag": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "Post": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "Feedback": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "FeedbackReplay": {
     "dataSource": "mongo",
     "public": true
   }

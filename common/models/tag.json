@@ -1,6 +1,6 @@
 {
-  "name": "UserRole",
-  "base": "Role",
+  "name": "Tag",
+  "base": "PersistedModel",
   "strict": true,
   "idInjection": true,
   "options": {
@@ -15,18 +15,10 @@
     "name": {
       "type": "string",
       "required": true
-    },
-    "description": {
-      "type": "string"
     }
   },
   "validations": [],
-  "relations": {
-    "userAccounts": {
-      "type": "hasMany",
-      "model": "UserAccount"
-    }
-  },
+  "relations": {},
   "acls": [],
   "methods": {}
 }

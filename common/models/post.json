@@ -1,6 +1,6 @@
 {
-  "name": "UserRole",
-  "base": "Role",
+  "name": "Post",
+  "base": "PersistedModel",
   "strict": true,
   "idInjection": true,
   "options": {
@@ -12,19 +12,24 @@
     "RowCount": true
   },
   "properties": {
-    "name": {
+    "title": {
       "type": "string",
       "required": true
     },
     "description": {
       "type": "string"
+    },
+    "files": {
+      "type": [
+        "object"
+      ]
     }
   },
   "validations": [],
   "relations": {
-    "userAccounts": {
+    "feedbacks": {
       "type": "hasMany",
-      "model": "UserAccount"
+      "model": "Feedback"
     }
   },
   "acls": [],

@@ -6,13 +6,17 @@
   "options": {
     "validateUpsert": false
   },
-  "hidden": ["password"],
+  "hidden": [
+    "password"
+  ],
   "mixins": {
     "TimeStamp": true,
     "SoftDelete": true,
     "RowCount": true
   },
-  "protected": ["password"],
+  "protected": [
+    "password"
+  ],
   "properties": {
     "fullName": {
       "type": "string"

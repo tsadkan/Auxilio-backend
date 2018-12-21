@@ -1,6 +1,6 @@
 {
-  "name": "UserRole",
-  "base": "Role",
+  "name": "Feedback",
+  "base": "PersistedModel",
   "strict": true,
   "idInjection": true,
   "options": {
@@ -12,19 +12,19 @@
     "RowCount": true
   },
   "properties": {
-    "name": {
+    "body": {
       "type": "string",
       "required": true
     },
-    "description": {
-      "type": "string"
+    "files": {
+      "type": ["object"]
     }
   },
   "validations": [],
   "relations": {
-    "userAccounts": {
+    "replays": {
       "type": "hasMany",
-      "model": "UserAccount"
+      "model": "FeedbackReplay"
     }
   },
   "acls": [],
