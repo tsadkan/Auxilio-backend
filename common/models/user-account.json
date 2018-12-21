@@ -1,0 +1,49 @@
+{
+  "name": "UserAccount",
+  "base": "User",
+  "strict": true,
+  "idInjection": true,
+  "options": {
+    "validateUpsert": false
+  },
+  "hidden": ["password"],
+  "mixins": {
+    "TimeStamp": true,
+    "SoftDelete": true,
+    "RowCount": true
+  },
+  "protected": ["password"],
+  "properties": {
+    "fullName": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "required": true
+    },
+    "phoneNumber": {
+      "type": "string"
+    },
+    "password": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "accessTokens": {
+      "type": "hasMany",
+      "model": "CustomAccessToken",
+      "foreignKey": "userId",
+      "options": {
+        "disableInclude": true
+      }
+    },
+    "role": {
+      "type": "belongsTo",
+      "model": "UserRole"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

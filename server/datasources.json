@@ -1,0 +1,21 @@
+{
+  "db": {
+    "name": "db",
+    "connector": "memory"
+  },
+  "mongo": {
+    "host": "localhost",
+    "port": 27017,
+    "database": "i4policyx",
+    "name": "mongo",
+    "connector": "mongodb",
+    "useNewUrlParser": true
+  },
+  "storage": {
+    "name": "storage",
+    "connector": "loopback-component-storage",
+    "provider": "filesystem",
+    "root": "./uploads",
+    "maxFileSize": "5000000000"
+  }
+}

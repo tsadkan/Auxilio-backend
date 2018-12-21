@@ -1,0 +1,23 @@
+{
+  "name": "CustomAccessToken",
+  "base": "AccessToken",
+  "idInjection": false,
+  "options": {
+    "validateUpsert": false
+  },
+  "properties": {
+    "userInfo": {
+      "type": "object"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "user": {
+      "type": "belongsTo",
+      "model": "UserAccount",
+      "foreignKey": "userId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

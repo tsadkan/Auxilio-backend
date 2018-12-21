@@ -1,0 +1,53 @@
+{
+  "_meta": {
+    "sources": [
+      "loopback/common/models",
+      "loopback/server/models",
+      "../common/models",
+      "./models"
+    ],
+    "mixins": [
+      "loopback/common/mixins",
+      "loopback/server/mixins",
+      "../node_modules/loopback-ds-timestamp-mixin",
+      "../node_modules/loopback-softdelete-2-mixin",
+      "../node_modules/loopback-row-count-mixin",
+      "../common/mixins",
+      "./mixins"
+    ]
+  },
+  "ACL": {
+    "dataSource": "mongo",
+    "public": false
+  },
+  "RoleMapping": {
+    "dataSource": "mongo",
+    "public": false,
+    "options": {
+      "strictObjectIDCoercion": true
+    }
+  },
+  "CustomAccessToken": {
+    "dataSource": "mongo",
+    "public": false
+  },
+  "UserAccount": {
+    "dataSource": "mongo",
+    "public": true,
+    "options":{
+      "remoting":{
+        "sharedMethods":{
+          "*":false,
+          "login":true,
+          "logout":true,
+          "registerMember":true
+         
+        }
+      }
+    }
+  },
+  "UserRole": {
+    "dataSource": "mongo",
+    "public": true
+  }
+}

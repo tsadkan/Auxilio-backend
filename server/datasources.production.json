@@ -1,0 +1,16 @@
+{
+  "mongo": {
+    "url": "${MONGO_PRODUCTION_URI}",
+    "name": "mongo",
+    "connector": "mongodb",
+    "allowExtendedOperators": true,
+    "useNewUrlParser": true
+  },
+  "storage": {
+    "name": "storage",
+    "connector": "loopback-component-storage",
+    "provider": "filesystem",
+    "root": "./uploads",
+    "maxFileSize": "5000000000"
+  }
+}

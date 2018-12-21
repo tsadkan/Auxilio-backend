@@ -1,0 +1,13 @@
+{
+  "extends": [
+    "loopback",
+    "eslint-config-airbnb-base",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "no-console":"error",
+    "func-names": 0,
+    "no-param-reassign": 0,
+    "no-restricted-syntax": ["error", "no-iterator"]
+  }
+}

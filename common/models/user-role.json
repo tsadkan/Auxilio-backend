@@ -1,0 +1,31 @@
+{
+  "name": "UserRole",
+  "base": "Role",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": false
+  },
+  "mixins": {
+    "TimeStamp": true,
+    "SoftDelete": true,
+    "RowCount": true
+  },
+  "properties": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "userAccounts": {
+      "type": "hasMany",
+      "model": "UserAccount"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
