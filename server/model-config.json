@@ -149,11 +149,15 @@
     }
   },
   "Email": {
-    "dataSource": "email",
-    "public": false
+    "dataSource": "email"
   },
   "PasswordReset": {
     "dataSource": "mongo",
-    "public": false
+    "public": false,
+    "remoting": {
+      "sharedMethods": {
+        "*": false
+      }
+    }
   }
 }
