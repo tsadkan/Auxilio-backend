@@ -20,16 +20,14 @@
       "type": "string"
     },
     "files": {
-      "type": [
-        "object"
-      ]
+      "type": ["object"]
     }
   },
   "validations": [],
-  "relations": {
-    "feedbacks": {
-      "type": "hasMany",
-      "model": "Feedback"
+  "relations": { 
+    "createdBy": {
+      "type": "belongsTo",
+      "model": "UserAccount"
     }
   },
   "acls": [
@@ -45,7 +43,42 @@
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "ALLOW",
-      "property": "*"
+      "property": "find"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "findById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "create"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "replaceById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "patchAttributes"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "deleteById"
     }
   ],
   "methods": {}

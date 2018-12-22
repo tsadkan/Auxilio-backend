@@ -22,9 +22,13 @@
   },
   "validations": [],
   "relations": {
-    "replays": {
-      "type": "hasMany",
-      "model": "FeedbackReplay"
+    "createdBy": {
+      "type": "belongsTo",
+      "model": "UserAccount"
+    },
+    "post": {
+      "type": "belongsTo",
+      "model": "Post"
     }
   },
   "acls": [
@@ -40,7 +44,42 @@
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "ALLOW",
-      "property": "*"
+      "property": "find"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "findById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "create"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "replaceById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "patchAttributes"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "deleteById"
     }
   ],
   "methods": {}

@@ -6,17 +6,13 @@
   "options": {
     "validateUpsert": false
   },
-  "hidden": [
-    "password"
-  ],
+  "hidden": ["password"],
   "mixins": {
     "TimeStamp": true,
     "SoftDelete": true,
     "RowCount": true
   },
-  "protected": [
-    "password"
-  ],
+  "protected": ["password"],
   "properties": {
     "fullName": {
       "type": "string"
@@ -48,6 +44,63 @@
       "model": "UserRole"
     }
   },
-  "acls": [],
+  "acls": [
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY",
+      "property": "*"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "login"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "logout"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "find"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "findById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "deleteById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "replaceById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "patchAttributes"
+    }
+  ],
   "methods": {}
 }

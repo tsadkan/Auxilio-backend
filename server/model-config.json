@@ -40,6 +40,11 @@
           "*": false,
           "login": true,
           "logout": true,
+          "find":true,
+          "findById":true,
+          "deleteById": true,
+          "replaceById":true,
+          "patchAttributes":true,
           "registerMember": true
         }
       }
@@ -47,26 +52,97 @@
   },
   "UserRole": {
     "dataSource": "mongo",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "find":true,
+          "findById":true
+        }
+      }
+    }
   },
   "PostCategory": {
     "dataSource": "mongo",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "find":true,
+          "findById":true,
+          "create":true,
+          "deleteById": true,
+          "replaceById":true,
+          "patchAttributes":true
+        }
+      }
+    }
   },
   "Tag": {
     "dataSource": "mongo",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "find": true,
+          "create": true,
+          "deleteById": true
+        }
+      }
+    }
   },
   "Post": {
     "dataSource": "mongo",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "find":true,
+          "findById":true,
+          "create":true,
+          "deleteById": true,
+          "replaceById":true,
+          "patchAttributes":true
+        }
+      }
+    }
   },
   "Feedback": {
     "dataSource": "mongo",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "find":true,
+          "findById":true,
+          "create":true,
+          "deleteById": true,
+          "replaceById":true,
+          "patchAttributes":true
+        }
+      }
+    }
   },
   "FeedbackReplay": {
     "dataSource": "mongo",
-    "public": true
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "find":true,
+          "findById":true,
+          "create":true,
+          "deleteById": true,
+          "replaceById":true,
+          "patchAttributes":true
+        }
+      }
+    }
   }
 }

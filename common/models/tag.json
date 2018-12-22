@@ -32,7 +32,21 @@
       "principalType": "ROLE",
       "principalId": "$admin",
       "permission": "ALLOW",
-      "property": "*"
+      "property": "deleteById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "find"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "create"
     }
   ],
   "methods": {}
