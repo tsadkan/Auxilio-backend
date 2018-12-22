@@ -47,7 +47,8 @@
           "patchAttributes":true,
           "registerMember": true,
           "appResetPassword": true,
-          "appVerifyResetPassword": true
+          "appVerifyResetPassword": true,
+          "updatePassword": true
         }
       }
     }

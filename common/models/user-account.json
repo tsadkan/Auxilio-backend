@@ -114,6 +114,13 @@
       "principalId": "$everyone",
       "permission": "ALLOW",
       "property": "appVerifyResetPassword"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "updatePassword"
     }
   ],
   "methods": {}

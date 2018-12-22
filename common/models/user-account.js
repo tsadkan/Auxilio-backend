@@ -142,7 +142,7 @@ module.exports = function(UserAccount) {
     });
 
     // check if the user with this request token exists
-    const { email } = PasswordReset;
+    const { email } = passwordReset;
     const user = UserAccount.findOne({
       where: {
         email
@@ -163,7 +163,7 @@ module.exports = function(UserAccount) {
       throw error("reset Token time out.", 403);
     }
 
-    return user;
+    return { email };
   };
 
   UserAccount.remoteMethod("appVerifyResetPassword", {
@@ -190,7 +190,7 @@ module.exports = function(UserAccount) {
     if (!passwordResets) throw Error("no password reset requested.", 403);
 
     // find current user
-    const user = await UserAccount.find({
+    const user = await UserAccount.findOne({
       where: {
         email
       }
