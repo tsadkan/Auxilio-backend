@@ -19,4 +19,4 @@ node_modules
 npm-debug.log
 *yarn*
 .env
-boot/seed-users.json
+server/boot/seed-users.json

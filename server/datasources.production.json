@@ -12,5 +12,21 @@
     "provider": "filesystem",
     "root": "./uploads",
     "maxFileSize": "5000000000"
+  },
+  "email": {
+    "name": "email",
+    "connector": "mail",
+    "transports": [
+      {
+        "type": "SMTP",
+        "host": "smtp.gmail.com",
+        "secure": true,
+        "port": 465,
+        "auth": {
+          "user": "${ADMIN_EMAIL}",
+          "pass": "${ADMIN_PASS}"
+        }
+      }
+    ]
   }
 }

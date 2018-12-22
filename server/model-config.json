@@ -45,7 +45,10 @@
           "deleteById": true,
           "replaceById":true,
           "patchAttributes":true,
-          "registerMember": true
+          "registerMember": true,
+          "appResetPassword": true,
+          "appVerifyResetPassword": true,
+          "updatePassword": true
         }
       }
     }
@@ -142,6 +145,18 @@
           "replaceById":true,
           "patchAttributes":true
         }
+      }
+    }
+  },
+  "Email": {
+    "dataSource": "email"
+  },
+  "PasswordReset": {
+    "dataSource": "mongo",
+    "public": false,
+    "remoting": {
+      "sharedMethods": {
+        "*": false
       }
     }
   }
