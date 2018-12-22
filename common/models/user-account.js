@@ -131,7 +131,7 @@ module.exports = function(UserAccount) {
     http: { verb: "post", path: "/app-password-reset-request" }
   });
 
-  UserAccount.appVerifyResetPassword = async resetToken => {
+  UserAccount.appVerifyResetPassword = async (resetToken, newPassword) => {
     const { PasswordReset } = UserAccount.app.models;
 
     // check if a password reset request with this request exists
@@ -140,6 +140,8 @@ module.exports = function(UserAccount) {
         resetToken
       }
     });
+
+    if (!passwordReset) throw error("Invalid reset Token.", 403);
 
     // check if the user with this request token exists
     const { email } = passwordReset;
@@ -154,8 +156,6 @@ module.exports = function(UserAccount) {
       throw error("Invalid reset Token.", 403);
     }
 
-    if (!passwordReset) throw error("Invalid reset Token.", 403);
-
     const hourDiff = differenceInHours(new Date(), passwordReset.createdAt);
 
     if (hourDiff >= 24) {
@@ -163,49 +163,16 @@ module.exports = function(UserAccount) {
       throw error("reset Token time out.", 403);
     }
 
-    return { email };
-  };
-
-  UserAccount.remoteMethod("appVerifyResetPassword", {
-    description: "reset user password via email.",
-    accepts: [{ arg: "resetToken", type: "string", required: true }],
-    returns: {
-      type: "object",
-      root: true
-    },
-    http: { verb: "post", path: "/app-verify-reset-password" }
-  });
-
-  // change password
-  UserAccount.updatePassword = async (email, newPassword) => {
-    const { PasswordReset } = UserAccount.app.models;
-
-    // check if this user requests password reset
     const passwordResets = await PasswordReset.find({
       where: {
         email
       }
     });
 
-    if (!passwordResets) throw Error("no password reset requested.", 403);
-
-    // find current user
-    const user = await UserAccount.findOne({
-      where: {
-        email
-      }
-    });
-
-    if (!user) throw Error("user not found.", 403);
-
-    await user.patchAttributes({
-      password: newPassword
-    });
-
-    // delete all password reset request for this user
+    // delete all password reset request for this email
     await Promise.all(
-      (passwordResets || []).map(passwordReset => {
-        PasswordReset.destroyById(passwordReset.id);
+      (passwordResets || []).map(reset => {
+        PasswordReset.destroyById(reset.id);
         return true;
       })
     );
@@ -217,16 +184,17 @@ module.exports = function(UserAccount) {
 
     return { tokenId: response.id };
   };
-  UserAccount.remoteMethod("updatePassword", {
-    description: "update password",
+
+  UserAccount.remoteMethod("appVerifyResetPassword", {
+    description: "reset user password via email.",
     accepts: [
-      { arg: "email", type: "string", required: true },
+      { arg: "resetToken", type: "string", required: true },
       { arg: "newPassword", type: "string", required: true }
     ],
     returns: {
       type: "object",
       root: true
     },
-    http: { verb: "post", path: "/update-password" }
+    http: { verb: "post", path: "/app-verify-reset-password" }
   });
 };
