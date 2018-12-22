@@ -28,6 +28,10 @@
     "createdBy": {
       "type": "belongsTo",
       "model": "UserAccount"
+    },
+    "tags": {
+      "type": "hasMany",
+      "model": "Tag"
     }
   },
   "acls": [
