@@ -1,0 +1,9 @@
+{
+  "adminUsers": [
+    { "fullName": "admin", "email": "admin@ahadoo.com", "password": "admin" },
+    { "fullName": "admin2", "email": "admin2@ahadoo.com", "password": "admin2" }
+  ],
+  "memberUsers": [
+    { "fullName": "testa", "email": "testa@ahadoo.com", "password": "testa" }
+  ]
+}

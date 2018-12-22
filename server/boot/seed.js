@@ -32,19 +32,17 @@ async function seedRoles(app) {
   const roles = [{ name: "admin" }, { name: "member" }];
   for (const role of roles) {
     // eslint-disable-next-line
-    await UserRole.findOrCreate({ where:{name: role.name} }, role);
+    await UserRole.findOrCreate({ where: { name: role.name } }, role);
   }
 }
 
-async function seedMembers(app) {
+async function seedMembers(app, memberUsers) {
   const { UserAccount, UserRole } = app.models;
-  const users = [
-    {
-      fullName: "testa",
-      email: "testa@ahadoo.com",
-      password: "testa"
-    }
-  ];
+  const users = memberUsers;
+  if (!users) {
+    app.logger.info("member user seed not found");
+    return;
+  }
   const memberRole = await UserRole.findOne({
     where: { name: "member" }
   });
@@ -58,15 +56,13 @@ async function seedMembers(app) {
     await UserAccount.findOrCreate({ where: { email: user.email } }, user);
   }
 }
-async function seedAdmins(app) {
+async function seedAdmins(app, adminUsers) {
   const { UserAccount, UserRole } = app.models;
-  const users = [
-    {
-      fullName: "admin",
-      email: "admin@ahadoo.com",
-      password: "admin"
-    }
-  ];
+  const users = adminUsers;
+  if (!users) {
+    app.logger.info("admin user seed not found");
+    return;
+  }
   const adminRole = await UserRole.findOne({
     where: { name: "admin" }
   });
@@ -81,11 +77,44 @@ async function seedAdmins(app) {
   }
 }
 
+function loadSeedUsers(app) {
+  try {
+    // eslint-disable-next-line
+    const seed = require("./seed-users.json");
+    if (!seed) {
+      return null;
+    }
+    return { adminUsers: seed.adminUsers, memberUsers: seed.memberUsers };
+  } catch (err) {
+    app.logger.error("Seed users file not found or invalid json ");
+    app.logger.error(
+      `create seed-users.json file in boot directory and list seed users like the following schema
+      {
+        'adminUsers':[
+          { "fullName": "test", "email": "test@test.com", "password": "test" },
+        ],
+        'memberRoles':[
+
+        ]
+      }
+      `
+    );
+    return null;
+  }
+}
 module.exports = async function(app) {
   app.logger.info("Seeding started");
   await seedRoles(app);
-  await seedAdmins(app);
-  await seedMembers(app);
+  const users = loadSeedUsers(app);
+  if (users) {
+    const { adminUsers, memberUsers } = users;
+    if (Array.isArray(adminUsers) && adminUsers.length) {
+      await seedAdmins(app, adminUsers);
+    }
+    if (Array.isArray(memberUsers) && memberUsers.length) {
+      await seedMembers(app, memberUsers);
+    }
+  }
   await seedCategories(app);
   await seedTags(app);
   app.logger.info("Seeding complete");
