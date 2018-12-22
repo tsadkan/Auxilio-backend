@@ -1,8 +1,7 @@
 const debug = require("debug")("App:Server");
 const loopback = require("loopback");
 const boot = require("loopback-boot");
-const result = require("dotenv").config();
-
+const validatePresenceOfEnvVars = require("../common/util/env");
 const logger = require("./logger");
 
 const app = loopback();
@@ -11,47 +10,13 @@ require("loopback-row-count-mixin")(app);
 
 app.logger.info(`NODE_ENV: ${process.env.NODE_ENV}`);
 
-if (!result.parsed || !result.parsed.RESET_PASSWORD_URL) {
-  // eslint-disable-next-line
-console.log(
-    `--------------------------------------------------------------------
-| RESET_PASSWORD_URL is required environment  variable.\n| Either user .env file or export on your terminal to define it.
---------------------------------------------------------------------
-  `
-  );
-  process.exit(-1);
-} else if (!result.parsed || !result.parsed.ADMIN_EMAIL) {
-  // eslint-disable-next-line
-console.log(
-    `--------------------------------------------------------------------
-| ADMIN_EMAIL is required environment  variable.\n| Either user .env file or export on your terminal to define it.
---------------------------------------------------------------------
-  `
-  );
-  process.exit(-1);
-} else if (!result.parsed || !result.parsed.ADMIN_PASS) {
-  // eslint-disable-next-line
-console.log(
-    `--------------------------------------------------------------------
-| ADMIN_PASS is required environment  variable.\n| Either user .env file or export on your terminal to define it.
---------------------------------------------------------------------
-  `
-  );
-  process.exit(-1);
-}
+validatePresenceOfEnvVars([
+  "MONGO_PRODUCTION_URI",
+  "RESET_PASSWORD_URL",
+  "ADMIN_EMAIL",
+  "ADMIN_PASS"
+]);
 
-if (process.env.NODE_ENV === "production") {
-  if (!result.parsed || !result.parsed.MONGO_PRODUCTION_URI) {
-    // eslint-disable-next-line
-console.log(
-      `--------------------------------------------------------------------
-| MONGO_PRODUCTION_URI is required environment  variable.\n| Either user .env file or export on your terminal to define it.
---------------------------------------------------------------------
-    `
-    );
-    process.exit(-1);
-  }
-}
 app.start = function() {
   // start the web server
   return app.listen(() => {
