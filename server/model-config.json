@@ -45,7 +45,9 @@
           "deleteById": true,
           "replaceById":true,
           "patchAttributes":true,
-          "registerMember": true
+          "registerMember": true,
+          "appResetPassword": true,
+          "appVerifyResetPassword": true
         }
       }
     }
@@ -144,5 +146,13 @@
         }
       }
     }
+  },
+  "Email": {
+    "dataSource": "email",
+    "public": false
+  },
+  "PasswordReset": {
+    "dataSource": "mongo",
+    "public": false
   }
 }
