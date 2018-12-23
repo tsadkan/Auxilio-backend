@@ -6,6 +6,10 @@ module.exports = async app => {
   }
   const { Post, Feedback, FeedbackReplay, UserAccount } = app.models;
 
+  const SEED_USERS_AMOUNT = 30;
+  const SEED_POSTS_AMOUNT = 50;
+  const SEED_FEEDBACKS_AMOUNT = 150;
+  const SEED_REPLAYS_AMOUNT = 100;
   const enoughDataAvailable = async () => {
     const posts = await Post.count();
     const feedbacks = await Feedback.count();
@@ -14,9 +18,9 @@ module.exports = async app => {
       posts &&
       feedbacks &&
       replays &&
-      posts >= 100 &&
-      feedbacks >= 25 &&
-      replays >= 25
+      posts >= SEED_POSTS_AMOUNT &&
+      feedbacks >= SEED_FEEDBACKS_AMOUNT &&
+      replays >= SEED_REPLAYS_AMOUNT
     );
   };
 
@@ -24,7 +28,7 @@ module.exports = async app => {
   app.logger.info("generating seed data for development");
   try {
     const users = [];
-    for (let i = 0; i < 30; i += 1) {
+    for (let i = 0; i < SEED_USERS_AMOUNT; i += 1) {
       users.push({
         fullName: casual.full_name,
         email: casual.email,
@@ -34,7 +38,7 @@ module.exports = async app => {
     const accounts = await UserAccount.create(users);
 
     const posts = [];
-    for (let i = 0; i < 100; i += 1) {
+    for (let i = 0; i < SEED_POSTS_AMOUNT; i += 1) {
       posts.push({
         title: casual.description,
         description: casual.text,
@@ -43,24 +47,26 @@ module.exports = async app => {
     }
     const postsCreated = await Post.create(posts);
     const feedbacks = [];
-    for (let i = 0; i < 25; i += 1) {
+    for (let i = 0; i < SEED_FEEDBACKS_AMOUNT; i += 1) {
       feedbacks.push({
         body: casual.text,
-        createdById: accounts[Math.floor(Math.random() * accounts.length)],
-        postId: postsCreated[Math.floor(Math.random() * postsCreated.length)]
+        createdById: accounts[Math.floor(Math.random() * accounts.length)].id,
+        postId: postsCreated[Math.floor(Math.random() * postsCreated.length)].id
       });
     }
 
     const feedbacksCreated = await Feedback.create(feedbacks);
 
     const feedbackReplays = [];
-    for (let i = 0; i < 25; i += 1) {
+    for (let i = 0; i < SEED_REPLAYS_AMOUNT; i += 1) {
       feedbackReplays.push({
         body: casual.text,
-        createdById: accounts[Math.floor(Math.random() * accounts.length)],
-        postId: postsCreated[Math.floor(Math.random() * postsCreated.length)],
+        createdById: accounts[Math.floor(Math.random() * accounts.length)].id,
+        postId:
+          postsCreated[Math.floor(Math.random() * postsCreated.length)].id,
         feedbackId:
           feedbacksCreated[Math.floor(Math.random() * feedbacksCreated.length)]
+            .id
       });
     }
     await FeedbackReplay.create(feedbackReplays);
