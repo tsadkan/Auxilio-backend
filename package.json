@@ -26,6 +26,7 @@
     "loopback-ds-timestamp-mixin": "^3.4.1",
     "loopback-row-count-mixin": "^0.1.8",
     "loopback-softdelete-2-mixin": "0.0.4",
+    "rate-limiter-flexible": "^0.20.2",
     "serve-favicon": "^2.0.1",
     "strong-error-handler": "^3.0.0",
     "uuid-token-generator": "^1.0.0",

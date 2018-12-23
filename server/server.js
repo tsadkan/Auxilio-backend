@@ -1,6 +1,8 @@
 const debug = require("debug")("App:Server");
 const loopback = require("loopback");
 const boot = require("loopback-boot");
+const { RateLimiterMemory } = require("rate-limiter-flexible");
+const config = require("./config.json");
 const validatePresenceOfEnvVars = require("../common/util/env");
 const logger = require("./logger");
 
@@ -16,6 +18,20 @@ validatePresenceOfEnvVars([
   "ADMIN_EMAIL",
   "ADMIN_PASS"
 ]);
+
+const rateLimiter = new RateLimiterMemory({
+  points: 3,
+  duration: 1,
+  blockDuration: 10
+});
+app.use(`${config.restApiRoot}/UserAccounts/*`, async (req, res, next) => {
+  try {
+    await rateLimiter.consume(req.connection.remoteAddress);
+    next();
+  } catch (err) {
+    res.status(429).send("Too many requests");
+  }
+});
 
 app.start = function() {
   // start the web server
