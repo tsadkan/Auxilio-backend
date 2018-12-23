@@ -1,5 +1,4 @@
-# i4policy-api-x
-## Extended Version of i4Policy App
+# Auxilio API
 
 ## Development
 $ npm run dev

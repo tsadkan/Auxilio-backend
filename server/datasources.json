@@ -6,7 +6,7 @@
   "mongo": {
     "host": "localhost",
     "port": 27017,
-    "database": "i4policyx",
+    "database": "auxilio",
     "name": "mongo",
     "connector": "mongodb",
     "useNewUrlParser": true
