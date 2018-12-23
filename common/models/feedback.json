@@ -29,6 +29,10 @@
     "post": {
       "type": "belongsTo",
       "model": "Post"
+    },
+    "feedbackReplays": {
+      "type": "hasMany",
+      "model": "FeedbackReplay"
     }
   },
   "acls": [

@@ -32,6 +32,10 @@
     "tags": {
       "type": "hasMany",
       "model": "Tag"
+    },
+    "feedbacks": {
+      "type": "hasMany",
+      "model": "Feedback"
     }
   },
   "acls": [
