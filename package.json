@@ -12,6 +12,7 @@
     "watch": "npm run lint && DEBUG=App:* NODE_ENV=development  nodemon ."
   },
   "dependencies": {
+    "casual": "^1.5.19",
     "compression": "^1.0.3",
     "cors": "^2.5.2",
     "date-fns": "^1.30.1",
