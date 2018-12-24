@@ -48,7 +48,8 @@
           "registerMember": true,
           "appResetPassword": true,
           "appVerifyResetPassword": true,
-          "updatePassword": true
+          "updatePassword": true,
+          "updateMyProfile": true
         }
       }
     }

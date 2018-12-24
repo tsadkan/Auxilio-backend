@@ -118,7 +118,14 @@
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$everyone",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "updateMyProfile"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "updatePassword"
     }

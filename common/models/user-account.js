@@ -2,8 +2,9 @@ const TokenGenerator = require("uuid-token-generator");
 const loopback = require("loopback");
 const path = require("path");
 const differenceInHours = require("date-fns/difference_in_hours");
+const bcrypt = require("bcrypt-nodejs");
 
-const { error } = require("../util");
+const { error, validatesAbsenceOf } = require("../util");
 
 module.exports = function(UserAccount) {
   /**
@@ -237,5 +238,97 @@ module.exports = function(UserAccount) {
     ],
     returns: { type: "object", root: true },
     http: { path: "/logout-user", verb: "post" }
+  });
+
+  // update user account
+  UserAccount.updateMyProfile = async (accessToken, body) => {
+    const fields = ["id", "fullName", "email", "phoneNo"];
+
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    validatesAbsenceOf(fields, body);
+
+    const account = await UserAccount.findById(accessToken.userId);
+    delete body.id;
+
+    await account.patchAttributes({ ...body });
+
+    return { status: true };
+  };
+  UserAccount.remoteMethod("updateMyProfile", {
+    description: "Update users's profile.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "body", type: "object", http: { source: "body" } }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "put", path: "/update-my-account" }
+  });
+
+  // change password
+  UserAccount.updatePassword = async (
+    oldPassword,
+    newPassword,
+    accessToken
+  ) => {
+    if (!accessToken || !accessToken.userId)
+      throw error("Unauthorized User", 403);
+
+    // find current user
+    const user = await UserAccount.findById(accessToken.userId);
+    if (!user) throw error("Unauthorized User", 403);
+
+    // check if old password is correct
+    const isMatch = await new Promise(resolve => {
+      bcrypt.compare(oldPassword, user.password, (err, match) => {
+        resolve(match);
+      });
+    });
+
+    // if old password is not correct throw error
+    if (!isMatch) throw error("Incorrect Old Password", 401);
+
+    await user.patchAttributes({
+      password: newPassword
+    });
+
+    const response = await UserAccount.login({
+      email: user.email,
+      password: newPassword
+    });
+
+    return { tokenId: response.id };
+  };
+  UserAccount.remoteMethod("updatePassword", {
+    description: "Request password change",
+    accepts: [
+      { arg: "oldPassword", type: "string", required: true },
+      { arg: "newPassword", type: "string", required: true },
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/update-password" }
   });
 };
