@@ -56,6 +56,8 @@ module.exports = function(Post) {
 
   // delete post
   Post.deleteMyPost = async (accessToken, postId) => {
+    const { Feedback, FeedbackReplay } = Post.app.models;
+
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
 
     const post = await Post.findOne({
@@ -72,6 +74,16 @@ module.exports = function(Post) {
       throw error("Cannot delete others post.", 403);
 
     await Post.destroyById(postId);
+    await Feedback.destroyAll({
+      where: {
+        postId
+      }
+    });
+    await FeedbackReplay.destroyAll({
+      where: {
+        postId
+      }
+    });
 
     return { status: true };
   };
