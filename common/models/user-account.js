@@ -202,4 +202,40 @@ module.exports = function(UserAccount) {
     },
     http: { verb: "post", path: "/app-verify-reset-password" }
   });
+
+  // custom user logout endpoint
+  UserAccount.logoutUser = async accessToken => {
+    const { CustomAccessToken } = UserAccount.app.models;
+
+    if (!accessToken || !accessToken.userId) return { status: true };
+
+    const token = await CustomAccessToken.findOne({
+      where: {
+        id: accessToken.id
+      }
+    });
+    if (!token) return { status: true };
+
+    try {
+      await UserAccount.logout(accessToken.id);
+    } catch (err) {
+      throw err;
+    }
+    return { status: true };
+  };
+  UserAccount.remoteMethod("logoutUser", {
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/logout-user", verb: "post" }
+  });
 };
