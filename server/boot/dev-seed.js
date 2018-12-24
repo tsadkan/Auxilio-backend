@@ -4,7 +4,7 @@ module.exports = async app => {
   if (process.env.NODE_ENV !== "development") {
     return;
   }
-  const { Post, Feedback, FeedbackReplay, UserAccount } = app.models;
+  const { Post, Feedback, FeedbackReplay, UserAccount, UserRole } = app.models;
 
   const SEED_USERS_AMOUNT = 30;
   const SEED_POSTS_AMOUNT = 50;
@@ -26,13 +26,22 @@ module.exports = async app => {
 
   if (await enoughDataAvailable()) return;
   app.logger.info("generating seed data for development");
+  const memberRole = await UserRole.findOne({
+    where: { name: "member" }
+  });
+  if (!memberRole) {
+    app.logger.error("Unable to find member role");
+    return;
+  }
   try {
     const users = [];
     for (let i = 0; i < SEED_USERS_AMOUNT; i += 1) {
       users.push({
         fullName: casual.full_name,
         email: casual.email,
-        password: casual.password
+        phoneNumber: casual.phone,
+        password: casual.password,
+        roleId: memberRole.id
       });
     }
     const accounts = await UserAccount.create(users);
