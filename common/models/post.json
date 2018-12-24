@@ -87,6 +87,20 @@
       "principalId": "$admin",
       "permission": "ALLOW",
       "property": "deleteById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "updateMyPost"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "deleteMyPost"
     }
   ],
   "methods": {}
