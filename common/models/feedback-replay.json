@@ -20,6 +20,10 @@
       "type": [
         "object"
       ]
+    },
+    "container": {
+      "type": "string",
+      "default": "feedback-reply"
     }
   },
   "validations": [],
@@ -86,6 +90,27 @@
       "principalId": "$admin",
       "permission": "ALLOW",
       "property": "deleteById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "createReply"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "updateMyReply"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "deleteMyReply"
     }
   ],
   "methods": {}

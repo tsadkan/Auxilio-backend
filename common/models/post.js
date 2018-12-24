@@ -28,8 +28,10 @@ module.exports = function(Post) {
       }
     });
 
+    if (!post) throw error("post doesn't exist.", 403);
+
     // check if the post is created by this user
-    if (accessToken.userId !== post.createdBy.id)
+    if (accessToken.userId.toString() !== post.createdBy().id.toString())
       throw error("Cannot update others post.", 403);
 
     delete body.id;
@@ -73,20 +75,18 @@ module.exports = function(Post) {
       }
     });
 
+    if (!post) throw error("post doesn't exist.", 403);
+
     // check if the post is created by this user
-    if (accessToken.userId !== post.createdBy.id)
+    if (accessToken.userId.toString() !== post.createdBy().id.toString())
       throw error("Cannot delete others post.", 403);
 
     await Post.destroyById(postId);
     await Feedback.destroyAll({
-      where: {
-        postId
-      }
+      postId
     });
     await FeedbackReplay.destroyAll({
-      where: {
-        postId
-      }
+      postId
     });
 
     return { status: true };
@@ -103,7 +103,7 @@ module.exports = function(Post) {
           return accessToken ? req.accessToken : null;
         }
       },
-      { arg: "postId", type: "string", http: { source: "body" } }
+      { arg: "postId", type: "string" }
     ],
     returns: {
       type: "object",
