@@ -22,6 +22,7 @@
     "formidable": "^1.2.1",
     "fs-extra": "^7.0.1",
     "gm": "^1.23.1",
+    "elasticsearch": "^15.2.0",
     "helmet": "^3.10.0",
     "loopback": "^3.22.0",
     "loopback-boot": "^2.6.5",

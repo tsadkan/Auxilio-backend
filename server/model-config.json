@@ -40,11 +40,11 @@
           "*": false,
           "login": true,
           "logout": true,
-          "find":true,
-          "findById":true,
+          "find": true,
+          "findById": true,
           "deleteById": true,
-          "replaceById":true,
-          "patchAttributes":true,
+          "replaceById": true,
+          "patchAttributes": true,
           "registerMember": true,
           "updateMember": true,
           "appResetPassword": true,
@@ -62,8 +62,8 @@
       "remoting": {
         "sharedMethods": {
           "*": false,
-          "find":true,
-          "findById":true
+          "find": true,
+          "findById": true
         }
       }
     }
@@ -75,12 +75,12 @@
       "remoting": {
         "sharedMethods": {
           "*": false,
-          "find":true,
-          "findById":true,
-          "create":true,
+          "find": true,
+          "findById": true,
+          "create": true,
           "deleteById": true,
-          "replaceById":true,
-          "patchAttributes":true
+          "replaceById": true,
+          "patchAttributes": true
         }
       }
     }
@@ -106,9 +106,9 @@
       "remoting": {
         "sharedMethods": {
           "*": false,
-          "find":true,
-          "findById":true,
-          "create":true,
+          "find": true,
+          "findById": true,
+          "create": true,
           "deleteById": true,
           "replaceById":true,
           "patchAttributes":true,
@@ -126,9 +126,9 @@
       "remoting": {
         "sharedMethods": {
           "*": false,
-          "find":true,
-          "findById":true,
-          "create":true,
+          "find": true,
+          "findById": true,
+          "create": true,
           "deleteById": true,
           "replaceById":true,
           "patchAttributes":true,
@@ -146,9 +146,9 @@
       "remoting": {
         "sharedMethods": {
           "*": false,
-          "find":true,
-          "findById":true,
-          "create":true,
+          "find": true,
+          "findById": true,
+          "create": true,
           "deleteById": true,
           "replaceById":true,
           "patchAttributes":true,
