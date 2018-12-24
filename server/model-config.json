@@ -46,6 +46,7 @@
           "replaceById":true,
           "patchAttributes":true,
           "registerMember": true,
+          "updateMember": true,
           "appResetPassword": true,
           "appVerifyResetPassword": true,
           "updatePassword": true,

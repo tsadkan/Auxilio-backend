@@ -4,7 +4,11 @@ const path = require("path");
 const differenceInHours = require("date-fns/difference_in_hours");
 const bcrypt = require("bcrypt-nodejs");
 
-const { error, validatesAbsenceOf } = require("../util");
+const {
+  error,
+  validatesAbsenceOf,
+  validateRequiredFields
+} = require("../util");
 
 module.exports = function(UserAccount) {
   /**
@@ -28,11 +32,13 @@ module.exports = function(UserAccount) {
    * Register user with role 'member'
    */
   UserAccount.registerMember = async (
+    accessToken,
     fullName,
     email,
     password,
     phoneNumber
   ) => {
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
     // todo check permission from the access token
     const { UserRole } = UserAccount.app.models;
     const role = await UserRole.findOne({
@@ -55,6 +61,15 @@ module.exports = function(UserAccount) {
   UserAccount.remoteMethod("registerMember", {
     description: "Register user",
     accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
       { arg: "fullName", type: "string", required: true },
       { arg: "email", type: "string", required: true },
       { arg: "password", type: "string", required: true },
@@ -65,6 +80,54 @@ module.exports = function(UserAccount) {
       root: true
     },
     http: { verb: "post", path: "/register-member" }
+  });
+
+  /**
+   * update member user
+   */
+  UserAccount.updateMember = async (accessToken, body) => {
+    const fields = ["id", "fullName", "email", "phoneNumber"];
+    const requiredFields = ["id"];
+
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    validatesAbsenceOf(fields, body);
+    validateRequiredFields(requiredFields, body);
+
+    const { UserRole } = UserAccount.app.models;
+    const role = await UserRole.findOne({
+      where: { name: "member" }
+    });
+
+    if (!role) {
+      throw error("unable to find member role");
+    }
+    const user = await UserAccount.findById(body.id);
+    delete body.id;
+
+    await user.patchAttributes({ ...body });
+
+    return { status: true };
+  };
+  UserAccount.remoteMethod("updateMember", {
+    description: "update user",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "body", type: "object", required: true }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "put", path: "/update-member" }
   });
 
   UserAccount.appResetPassword = async email => {
@@ -242,7 +305,7 @@ module.exports = function(UserAccount) {
 
   // update user account
   UserAccount.updateMyProfile = async (accessToken, body) => {
-    const fields = ["id", "fullName", "email", "phoneNo"];
+    const fields = ["id", "fullName", "email", "phoneNumber"];
 
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 

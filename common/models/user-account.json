@@ -104,6 +104,20 @@
     {
       "accessType": "*",
       "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "registerMember"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "updateMember"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
       "principalId": "$everyone",
       "permission": "ALLOW",
       "property": "appResetPassword"
