@@ -113,7 +113,8 @@
           "replaceById":true,
           "patchAttributes":true,
           "updateMyPost": true,
-          "deleteMyPost": true
+          "deleteMyPost": true,
+          "createPost": true
         }
       }
     }
@@ -163,5 +164,9 @@
         "*": false
       }
     }
+  },
+  "Container": {
+    "dataSource": "storage",
+    "public": true
   }
 }

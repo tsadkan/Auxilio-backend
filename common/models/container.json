@@ -1,0 +1,22 @@
+{
+    "name": "Container",
+    "base": "Model",
+    "idInjection": true,
+    "options": {
+      "validateUpsert": true
+    },
+    "mixins": {
+      "DisableMethods": {
+        "expose": [
+          "download",
+          "customUpload"
+        ]
+      }
+    },
+    "properties": {},
+    "validations": [],
+    "relations": {},
+    "acls": [],
+    "methods": {}
+  }
+  

@@ -21,6 +21,10 @@
     },
     "files": {
       "type": ["object"]
+    },
+    "container": {
+      "type": "string",
+      "default": "post"
     }
   },
   "validations": [],
@@ -101,6 +105,13 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "deleteMyPost"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "createPost"
     }
   ],
   "methods": {}

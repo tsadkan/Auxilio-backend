@@ -1,3 +1,5 @@
+const fs = require("fs");
+const formidable = require("formidable");
 const {
   error,
   validatesAbsenceOf,
@@ -5,6 +7,8 @@ const {
 } = require("../util");
 
 module.exports = function(Post) {
+  const BUCKET = "post";
+
   // update post
   Post.updateMyPost = async (accessToken, body) => {
     const fields = ["id", "title", "description", "files"];
@@ -106,5 +110,95 @@ module.exports = function(Post) {
       root: true
     },
     http: { verb: "delete", path: "/delete-my-post" }
+  });
+
+  Post.createPost = async (accessToken, req, res) => {
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const {
+      name: storageName,
+      root: storageRoot
+    } = Post.app.dataSources.storage.settings;
+
+    if (storageName === "storage") {
+      const path = `${storageRoot}/${BUCKET}/`;
+
+      if (!fs.existsSync(path)) {
+        fs.mkdirSync(path);
+      }
+    } else throw Error("Unknown Storage", 400);
+
+    const { Container } = Post.app.models;
+    const form = new formidable.IncomingForm();
+
+    const filePromise = new Promise(resolve => {
+      const filesInfo = Container.customUpload(req, res, BUCKET);
+
+      return resolve(filesInfo);
+    });
+
+    const fieldsPromise = new Promise((resolve, reject) => {
+      form.parse(req, (err, fields) => {
+        if (err) return reject(err);
+
+        return resolve(fields);
+      });
+    });
+
+    try {
+      const [filesInfo, fields] = await Promise.all([
+        filePromise,
+        fieldsPromise
+      ]);
+      // check if there are file ... if not make it undefined
+      const files = filesInfo.file
+        ? filesInfo.file.map(file => ({
+            name: file.name,
+            size: file.size,
+            originalName: file.originalFilename,
+            fileType: file.type
+          }))
+        : undefined;
+
+      const requiredFields = ["title"];
+      validateRequiredFields(requiredFields, fields);
+
+      const { title, description } = fields;
+
+      const post = await Post.create({
+        title,
+        description,
+        files,
+        createdById: accessToken.userId,
+        container: BUCKET
+      });
+
+      return post;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  Post.remoteMethod("createPost", {
+    description: "Create post with uploaded file.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "req", type: "object", http: { source: "req" } },
+      { arg: "res", type: "object", http: { source: "res" } }
+    ],
+    returns: {
+      arg: "fileObject",
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/create-post" }
   });
 };
