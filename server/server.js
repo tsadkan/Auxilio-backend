@@ -1,5 +1,6 @@
 const debug = require("debug")("App:Server");
 const loopback = require("loopback");
+const elasticsearch = require("elasticsearch");
 const boot = require("loopback-boot");
 const { RateLimiterMemory } = require("rate-limiter-flexible");
 const config = require("./config.json");
@@ -7,12 +8,21 @@ const validatePresenceOfEnvVars = require("../common/util/env");
 const logger = require("./logger");
 
 const app = loopback();
+
+const client = new elasticsearch.Client({
+  host: process.env.ELASTICSEARCH_HOST
+});
+
+app.es = client;
+
 app.logger = logger;
 require("loopback-row-count-mixin")(app);
 
 app.logger.info(`NODE_ENV: ${process.env.NODE_ENV}`);
 
 validatePresenceOfEnvVars([
+  "ELASTICSEARCH_HOST",
+  "ES_INDEX",
   "MONGO_PRODUCTION_URI",
   "RESET_PASSWORD_URL",
   "ADMIN_EMAIL",
