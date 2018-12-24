@@ -90,7 +90,7 @@ module.exports = function(UserAccount) {
       // read the reset url from env file
       const { RESET_PASSWORD_URL } = process.env;
       const { fullName } = user;
-      const ADMIN_EMAIL = process.env;
+      const { ADMIN_EMAIL } = process.env;
       const resetUrl = `${RESET_PASSWORD_URL}/${resetToken}`;
 
       const content = {
@@ -145,7 +145,7 @@ module.exports = function(UserAccount) {
 
     // check if the user with this request token exists
     const { email } = passwordReset;
-    const user = UserAccount.findOne({
+    const user = await UserAccount.findOne({
       where: {
         email
       }
@@ -167,6 +167,11 @@ module.exports = function(UserAccount) {
       where: {
         email
       }
+    });
+
+    // update users password to new password
+    await user.patchAttributes({
+      password: newPassword
     });
 
     // delete all password reset request for this email
