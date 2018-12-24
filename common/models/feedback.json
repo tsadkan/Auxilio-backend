@@ -18,6 +18,10 @@
     },
     "files": {
       "type": ["object"]
+    },
+    "container": {
+      "type": "string",
+      "default": "feedback"
     }
   },
   "validations": [],
@@ -84,6 +88,27 @@
       "principalId": "$admin",
       "permission": "ALLOW",
       "property": "deleteById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "createFeedback"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "updateMyFeedback"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "deleteMyFeedback"
     }
   ],
   "methods": {}

@@ -6,12 +6,7 @@
       "validateUpsert": true
     },
     "mixins": {
-      "DisableMethods": {
-        "expose": [
-          "download",
-          "customUpload"
-        ]
-      }
+      
     },
     "properties": {},
     "validations": [],
