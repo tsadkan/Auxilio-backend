@@ -127,7 +127,7 @@ module.exports = function(UserAccount) {
       type: "object",
       root: true
     },
-    http: { verb: "put", path: "/update-member" }
+    http: { verb: "patch", path: "/update-member" }
   });
 
   UserAccount.appResetPassword = async email => {
@@ -336,7 +336,7 @@ module.exports = function(UserAccount) {
       type: "object",
       root: true
     },
-    http: { verb: "put", path: "/update-my-account" }
+    http: { verb: "patch", path: "/update-my-account" }
   });
 
   // change password
