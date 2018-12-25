@@ -37,6 +37,7 @@ module.exports = async app => {
     const users = [];
     for (let i = 0; i < SEED_USERS_AMOUNT; i += 1) {
       users.push({
+        title: casual.name_prefix,
         fullName: casual.full_name,
         email: casual.email,
         phoneNumber: casual.phone,
@@ -51,6 +52,7 @@ module.exports = async app => {
       posts.push({
         title: casual.description,
         description: casual.text,
+        endDate: casual.date(),
         createdById: accounts[Math.floor(Math.random() * accounts.length)].id
       });
     }

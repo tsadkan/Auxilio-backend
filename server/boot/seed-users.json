@@ -1,9 +1,9 @@
 {
   "adminUsers": [
-    { "fullName": "admin", "email": "admin@ahadoo.com", "password": "admin" },
-    { "fullName": "admin2", "email": "admin2@ahadoo.com", "password": "admin2" }
+    { "title":"Regional Manager","fullName": "admin", "email": "admin@ahadoo.com", "password": "admin" },
+    { "title":"Assistance Regional Manager","fullName": "admin2", "email": "admin2@ahadoo.com", "password": "admin2" }
   ],
   "memberUsers": [
-    { "fullName": "testa", "email": "testa@ahadoo.com", "password": "testa" }
+    { "title":"Assistance To The  Regional Manager","fullName": "testa", "email": "testa@ahadoo.com", "password": "testa" }
   ]
 }

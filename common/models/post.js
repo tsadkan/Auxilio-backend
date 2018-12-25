@@ -1,5 +1,7 @@
 const fs = require("fs");
 const formidable = require("formidable");
+const { differenceInDays } = require("date-fns");
+
 const {
   error,
   validatesAbsenceOf,
@@ -9,6 +11,15 @@ const {
 
 module.exports = function(Post) {
   const BUCKET = "post";
+
+  /**
+   * This operation hook sets the startDate property similar to created at
+   */
+  Post.observe("before save", async ctx => {
+    if (ctx.instance && ctx.instance.createdAt) {
+      ctx.instance.startDate = ctx.instance.createdAt;
+    }
+  });
 
   // update post
   Post.updateMyPost = async (accessToken, body) => {
@@ -244,6 +255,20 @@ module.exports = function(Post) {
     http: { verb: "post", path: "/create-post" }
   });
 
+  /**
+   * Attach remaining days and progress on posts
+   * @param {Array} posts
+   */
+  const addPostProgress = posts =>
+    posts.map(post => {
+      const totalDays = differenceInDays(post.endDate, post.startDate);
+      const remaining = differenceInDays(post.endDate, new Date());
+      post.remainingDays = remaining || 0;
+      post.progress =
+        Number.parseFloat((remaining / totalDays) * 100).toFixed(2) || 0;
+      return post;
+    });
+
   // get list of posts
   Post.list = async (limit, skip, accessToken) => {
     const { UserPostStatus, Feedback } = Post.app.models;
@@ -296,7 +321,8 @@ module.exports = function(Post) {
 
     newPosts = sort(newPosts, "newFeedbacks");
 
-    return { count, rows: newPosts };
+    const result = addPostProgress(newPosts);
+    return { count, rows: result };
   };
 
   Post.remoteMethod("list", {
