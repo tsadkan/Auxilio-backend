@@ -39,7 +39,7 @@
         "sharedMethods": {
           "*": false,
           "login": true,
-          "logout": true,
+          "logoutUser": true,
           "find": true,
           "findById": true,
           "deleteById": true,

@@ -64,7 +64,7 @@
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "ALLOW",
-      "property": "logout"
+      "property": "logoutUser"
     },
     {
       "accessType": "*",
