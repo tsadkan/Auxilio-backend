@@ -1,0 +1,29 @@
+{
+  "name": "UserPostStatus",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "lastSeen": {
+      "type": "date",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "post": {
+      "type": "belongsTo",
+      "model": "Post",
+      "foreignKey": ""
+    },
+    "userAccount": {
+      "type": "belongsTo",
+      "model": "UserAccount",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

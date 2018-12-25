@@ -106,11 +106,11 @@
       "remoting": {
         "sharedMethods": {
           "*": false,
-          "find": true,
-          "findById": true,
+          "list": true,
+          "detail": true,
           "deleteById": true,
-          "replaceById":true,
-          "patchAttributes":true,
+          "replaceById": true,
+          "patchAttributes": true,
           "updateMyPost": true,
           "deleteMyPost": true,
           "createPost": true
@@ -128,8 +128,8 @@
           "find": true,
           "findById": true,
           "deleteById": true,
-          "replaceById":true,
-          "patchAttributes":true,
+          "replaceById": true,
+          "patchAttributes": true,
           "updateMyFeedback": true,
           "deleteMyFeedback": true,
           "createFeedback": true
@@ -147,8 +147,8 @@
           "find": true,
           "findById": true,
           "deleteById": true,
-          "replaceById":true,
-          "patchAttributes":true,
+          "replaceById": true,
+          "patchAttributes": true,
           "updateMyReply": true,
           "deleteMyReply": true,
           "createReply": true
@@ -180,5 +180,9 @@
         }
       }
     }
+  },
+  "UserPostStatus": {
+    "dataSource": "mongo",
+    "public": true
   }
 }

@@ -20,5 +20,23 @@ module.exports = {
         throw getError(`property ${key} doesn't exist.`, 422);
       }
     }
+  },
+  sort: (array, order) => {
+    const orderBy = order.split(" ")[0];
+    const asc = order.split(" ")[1] === "ASC";
+
+    if (array && array.length > 1) {
+      array.sort((a, b) => {
+        if (a[orderBy] < b[orderBy]) {
+          return asc ? -1 : 1;
+        }
+        if (a[orderBy] > b[orderBy]) {
+          return asc ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return array;
   }
 };

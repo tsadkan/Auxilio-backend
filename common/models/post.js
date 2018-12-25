@@ -3,7 +3,8 @@ const formidable = require("formidable");
 const {
   error,
   validatesAbsenceOf,
-  validateRequiredFields
+  validateRequiredFields,
+  sort
 } = require("../util");
 
 module.exports = function(Post) {
@@ -62,7 +63,7 @@ module.exports = function(Post) {
 
   // delete post
   Post.deleteMyPost = async (accessToken, postId) => {
-    const { Feedback, FeedbackReplay } = Post.app.models;
+    const { Feedback, FeedbackReplay, Container } = Post.app.models;
 
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
 
@@ -81,12 +82,53 @@ module.exports = function(Post) {
     if (accessToken.userId.toString() !== post.createdBy().id.toString())
       throw error("Cannot delete others post.", 403);
 
+    const feedbacks = Feedback.find({
+      where: {
+        postId
+      }
+    });
+
+    const replies = FeedbackReplay.find({
+      where: {
+        postId
+      }
+    });
+
     await Post.destroyById(postId);
     await Feedback.destroyAll({
       postId
     });
     await FeedbackReplay.destroyAll({
       postId
+    });
+
+    // delete all the files related to this post and its feedback and its replies
+    const { files } = post;
+    await Promise.all(
+      (files || []).map(async file => {
+        await Container.removeFile(BUCKET, file.filename, () => {});
+        return true;
+      })
+    );
+
+    feedbacks.forEach(async feedback => {
+      const feedbackFiles = feedback.files;
+      await Promise.all(
+        (feedbackFiles || []).map(async file => {
+          await Container.removeFile(BUCKET, file.filename, () => {});
+          return true;
+        })
+      );
+    });
+
+    replies.forEach(async reply => {
+      const replyFiles = reply.files;
+      await Promise.all(
+        (replyFiles || []).map(async file => {
+          await Container.removeFile(BUCKET, file.filename, () => {});
+          return true;
+        })
+      );
     });
 
     return { status: true };
@@ -113,7 +155,7 @@ module.exports = function(Post) {
   });
 
   Post.createPost = async (accessToken, req, res) => {
-    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+    if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
 
     const {
       name: storageName,
@@ -126,7 +168,7 @@ module.exports = function(Post) {
       if (!fs.existsSync(path)) {
         fs.mkdirSync(path);
       }
-    } else throw Error("Unknown Storage", 400);
+    } else throw error("Unknown Storage", 400);
 
     const { Container } = Post.app.models;
     const form = new formidable.IncomingForm();
@@ -200,5 +242,125 @@ module.exports = function(Post) {
       root: true
     },
     http: { verb: "post", path: "/create-post" }
+  });
+
+  // get list of posts
+  Post.list = async (limit, skip, accessToken) => {
+    const { UserPostStatus, Feedback } = Post.app.models;
+
+    if (!accessToken || !accessToken.userId)
+      throw error("Unauthorized User", 403);
+
+    limit = limit || 0;
+    skip = skip || 0;
+
+    const count = await Post.count({});
+
+    const posts = await Post.find({
+      include: {
+        relation: "feedbacks"
+      },
+      limit,
+      skip
+    });
+
+    // prepare new posts to return as a list of posts including the number of new feedbacks
+    let newPosts = await Promise.all(
+      (posts || []).map(async post => {
+        const userPostStatus = await UserPostStatus.findOne({
+          where: {
+            postId: post.id,
+            UserAccountId: accessToken.userId
+          }
+        });
+
+        const lastSeenTimeStamp =
+          (userPostStatus && userPostStatus.lastSeen) ||
+          new Date(-8640000000000000);
+
+        // count feedbacks for this post after lastSeen timeStamp
+        const newFeedbacks = await Feedback.count({
+          postId: post.id,
+          createdAt: { gt: lastSeenTimeStamp }
+        });
+
+        // attach new feedbacks to post object
+        post.newFeedbacks = newFeedbacks;
+        // attach number of feedbacks post object
+        post.numberOfFeedbacks = post.feedbacks().length;
+        delete post.feedbacks;
+
+        return post;
+      })
+    );
+
+    newPosts = sort(newPosts, "newFeedbacks");
+
+    return { count, rows: newPosts };
+  };
+
+  Post.remoteMethod("list", {
+    description: "return list of posts.",
+    accepts: [
+      { arg: "limit", type: "number" },
+      { arg: "skip", type: "number" },
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/list", verb: "get" }
+  });
+
+  // get detail of a post
+  Post.detail = async (postId, accessToken) => {
+    const { UserAccount, UserPostStatus } = Post.app.models;
+
+    if (!accessToken || !accessToken.userId)
+      throw error("Unauthorized User", 403);
+
+    const post = await Post.findOne({
+      where: {
+        id: postId
+      },
+      include: ["feedbacks"]
+    });
+
+    if (!post) throw error("post doesn't exist.", 404);
+
+    const user = await UserAccount.findById(accessToken.userId);
+
+    // update/insert user seen status
+    const lastSeen = new Date();
+    await UserPostStatus.upsertWithWhere(
+      { postId, userAccountId: user.id },
+      { postId, userAccountId: user.id, lastSeen }
+    );
+
+    return post;
+  };
+
+  Post.remoteMethod("detail", {
+    description: "return detail of post.",
+    accepts: [
+      { arg: "postId", type: "string" },
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/detail", verb: "get" }
   });
 };
