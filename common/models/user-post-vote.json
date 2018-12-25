@@ -1,0 +1,34 @@
+{
+  "name": "UserPostVote",
+  "plural": "UserPostVote",
+  "base": "PersistedModel",
+  "strict": true,
+  "idInjection": true,
+  "options": {
+    "validateUpsert": false
+  },
+  "mixins": {
+    "TimeStamp": true,
+    "SoftDelete": true,
+    "RowCount": true
+  },
+  "properties": {
+    "vote": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "validations": [],
+  "relations": {
+    "post": {
+      "type": "belongsTo",
+      "model": "Post"
+    },
+    "user": {
+      "type": "belongsTo",
+      "model": "UserAccount"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
