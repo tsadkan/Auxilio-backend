@@ -95,21 +95,21 @@
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$authenticated",
+      "principalId": "$admin",
       "permission": "ALLOW",
       "property": "updateMyPost"
     },
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$authenticated",
+      "principalId": "$admin",
       "permission": "ALLOW",
       "property": "deleteMyPost"
     },
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$authenticated",
+      "principalId": "$admin",
       "permission": "ALLOW",
       "property": "createPost"
     }
