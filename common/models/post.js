@@ -269,6 +269,37 @@ module.exports = function(Post) {
       return post;
     });
 
+  /**
+   * Attach up vote & down vote amount for posts
+   * @param {Array} posts
+   */
+  const addVotes = async posts => {
+    const { UserPostVote } = Post.app.models;
+    const postIds = posts.map(post => post.id);
+    const postVotes = await UserPostVote.find({
+      id: { inq: postIds }
+    });
+
+    if (!postVotes || !postVotes.length) {
+      return posts;
+    }
+    return posts.map(post => {
+      post.upVote = 0;
+      post.downVote = 0;
+      for (const postVote of postVotes) {
+        if (postVote.postId.toString() === post.id.toString()) {
+          if (postVote.vote === 1) {
+            post.upVote += 1;
+          }
+          if (postVote.vote === -1) {
+            post.downVote += 1;
+          }
+        }
+      }
+      return post;
+    });
+  };
+
   // get list of posts
   Post.list = async (limit, skip, accessToken) => {
     const { UserPostStatus, Feedback } = Post.app.models;
@@ -321,7 +352,8 @@ module.exports = function(Post) {
 
     newPosts = sort(newPosts, "newFeedbacks");
 
-    const result = addPostProgress(newPosts);
+    let result = addPostProgress(newPosts);
+    result = await addVotes(result);
     return { count, rows: result };
   };
 
