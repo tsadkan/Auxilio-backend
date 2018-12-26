@@ -263,11 +263,18 @@ module.exports = function(Post) {
    */
   const addPostProgress = posts =>
     posts.map(post => {
-      const totalDays = differenceInDays(post.endDate, post.startDate);
-      const remaining = differenceInDays(post.endDate, new Date());
+      const totalDays =
+        post.endDate && post.startDate
+          ? differenceInDays(post.endDate, post.startDate)
+          : 0;
+      const remaining = post.endDate
+        ? differenceInDays(post.endDate, new Date())
+        : 0;
       post.remainingDays = remaining || 0;
       post.progress =
-        Number.parseFloat((remaining / totalDays) * 100).toFixed(2) || 0;
+        remaining && totalDays
+          ? Number.parseFloat((remaining / totalDays) * 100).toFixed(2) || 0
+          : 0;
       return post;
     });
 
