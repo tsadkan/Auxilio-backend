@@ -21,6 +21,8 @@ module.exports = function(UserAccount) {
     }
     ctx.result = {
       token: result.id,
+      title: userInfo.title,
+      profilePicture: userInfo.profilePicture,
       fullName: userInfo.fullName,
       email: userInfo.email,
       phoneNumber: userInfo.phoneNumber,
@@ -33,6 +35,7 @@ module.exports = function(UserAccount) {
    */
   UserAccount.registerMember = async (
     accessToken,
+    title,
     fullName,
     email,
     password,
@@ -50,6 +53,7 @@ module.exports = function(UserAccount) {
     }
     const user = {
       roleId: role.id,
+      title,
       fullName,
       email,
       password,
@@ -70,6 +74,7 @@ module.exports = function(UserAccount) {
           return accessToken ? req.accessToken : null;
         }
       },
+      { arg: "title", type: "string", required: true },
       { arg: "fullName", type: "string", required: true },
       { arg: "email", type: "string", required: true },
       { arg: "password", type: "string", required: true },
@@ -86,7 +91,7 @@ module.exports = function(UserAccount) {
    * update member user
    */
   UserAccount.updateMember = async (accessToken, body) => {
-    const fields = ["id", "fullName", "email", "phoneNumber"];
+    const fields = ["id", "title", "fullName", "email", "phoneNumber"];
     const requiredFields = ["id"];
 
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
@@ -280,11 +285,8 @@ module.exports = function(UserAccount) {
     });
     if (!token) return { status: true };
 
-    try {
-      await UserAccount.logout(accessToken.id);
-    } catch (err) {
-      throw err;
-    }
+    await UserAccount.logout(accessToken.id);
+
     return { status: true };
   };
   UserAccount.remoteMethod("logoutUser", {
@@ -305,7 +307,14 @@ module.exports = function(UserAccount) {
 
   // update user account
   UserAccount.updateMyProfile = async (accessToken, body) => {
-    const fields = ["id", "fullName", "email", "phoneNumber"];
+    const fields = [
+      "id",
+      "title",
+      "profilePicture",
+      "fullName",
+      "email",
+      "phoneNumber"
+    ];
 
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
