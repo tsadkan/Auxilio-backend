@@ -406,7 +406,7 @@ module.exports = function(Post) {
         {
           relation: "feedbacks",
           scope: {
-            include: ["createdBy", "feedbackReplays"]
+            include: ["createdBy", "category", "feedbackReplays"]
           }
         },
         {
