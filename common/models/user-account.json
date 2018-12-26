@@ -29,7 +29,8 @@
       "type": "string"
     },
     "profilePicture": {
-      "type": "string"
+      "type": "string",
+      "default":"avatar_anonymous.png"
     },
     "password": {
       "type": "string",
