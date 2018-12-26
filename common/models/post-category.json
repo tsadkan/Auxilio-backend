@@ -71,6 +71,13 @@
       "principalId": "$admin",
       "permission": "ALLOW",
       "property": "deleteById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "updateCategory"
     }
   ],
   "methods": {}
