@@ -50,4 +50,8 @@ ADMIN_PASS="test"
     ]
 }
 
+
 ```
+
+#Note
+- on Post/list endpoint the filter should be send using the following format/assuming it only accepts where filter - {"categoryId": "--", "createdById": "--"}

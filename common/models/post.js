@@ -302,7 +302,7 @@ module.exports = function(Post) {
   };
 
   // get list of posts
-  Post.list = async (limit, skip, accessToken) => {
+  Post.list = async (limit, skip, filter, accessToken) => {
     const { UserPostStatus, Feedback } = Post.app.models;
 
     if (!accessToken || !accessToken.userId)
@@ -311,9 +311,12 @@ module.exports = function(Post) {
     limit = limit || 0;
     skip = skip || 0;
 
-    const count = await Post.count({});
+    const count = await Post.count({ ...filter });
 
     const posts = await Post.find({
+      where: {
+        ...filter
+      },
       include: ["feedbacks", "category"],
       limit,
       skip
@@ -361,6 +364,7 @@ module.exports = function(Post) {
     accepts: [
       { arg: "limit", type: "number" },
       { arg: "skip", type: "number" },
+      { arg: "filter", type: "object" },
       {
         arg: "accessToken",
         type: "object",
