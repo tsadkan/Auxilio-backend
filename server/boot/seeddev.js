@@ -4,7 +4,14 @@ module.exports = async app => {
   if (process.env.NODE_ENV !== "development") {
     return;
   }
-  const { Post, Feedback, FeedbackReplay, UserAccount, UserRole } = app.models;
+  const {
+    Post,
+    Feedback,
+    FeedbackReplay,
+    UserAccount,
+    UserRole,
+    PostCategory
+  } = app.models;
 
   const SEED_USERS_AMOUNT = 30;
   const SEED_POSTS_AMOUNT = 50;
@@ -25,7 +32,7 @@ module.exports = async app => {
   };
 
   if (await enoughDataAvailable()) return;
-  app.logger.info("generating seed data for development");
+  app.logger.info("Dev Seed Started");
   const memberRole = await UserRole.findOne({
     where: { name: "member" }
   });
@@ -47,13 +54,26 @@ module.exports = async app => {
     }
     const accounts = await UserAccount.create(users);
 
+    const categories = [];
+    for (let i = 0; i < 4; i += 1) {
+      categories.push({
+        name: casual.word,
+        color: casual.rgb_hex
+      });
+    }
+    const categoriesCreated = await PostCategory.create(categories);
+
     const posts = [];
     for (let i = 0; i < SEED_POSTS_AMOUNT; i += 1) {
       posts.push({
         title: casual.description,
         description: casual.text,
         endDate: casual.date(),
-        createdById: accounts[Math.floor(Math.random() * accounts.length)].id
+        createdById: accounts[Math.floor(Math.random() * accounts.length)].id,
+        categoryId:
+          categoriesCreated[
+            Math.floor(Math.random() * categoriesCreated.length)
+          ].id
       });
     }
     const postsCreated = await Post.create(posts);
@@ -81,7 +101,10 @@ module.exports = async app => {
       });
     }
     await FeedbackReplay.create(feedbackReplays);
+    app.logger.info("Dev Seed Complete");
   } catch (err) {
-    app.logger.error(err);
+    if (err) {
+      app.logger.error(`dev seed error:: ${err.toString()}`);
+    }
   }
 };
