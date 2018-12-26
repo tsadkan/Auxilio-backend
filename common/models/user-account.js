@@ -36,6 +36,7 @@ module.exports = function(UserAccount) {
   UserAccount.registerMember = async (
     accessToken,
     title,
+    profilePicture,
     fullName,
     email,
     password,
@@ -57,7 +58,8 @@ module.exports = function(UserAccount) {
       fullName,
       email,
       password,
-      phoneNumber
+      phoneNumber,
+      profilePicture
     };
     const createdUser = await UserAccount.create(user);
     return createdUser;
@@ -91,7 +93,14 @@ module.exports = function(UserAccount) {
    * update member user
    */
   UserAccount.updateMember = async (accessToken, body) => {
-    const fields = ["id", "title", "fullName", "email", "phoneNumber"];
+    const fields = [
+      "id",
+      "title",
+      "fullName",
+      "email",
+      "phoneNumber",
+      "password"
+    ];
     const requiredFields = ["id"];
 
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
