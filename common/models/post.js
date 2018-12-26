@@ -213,14 +213,15 @@ module.exports = function(Post) {
           }))
         : undefined;
 
-      const requiredFields = ["title"];
+      const requiredFields = ["title", "categoryId", "endDate"];
       validateRequiredFields(requiredFields, fields);
 
-      const { title, description } = fields;
+      const { title, description, endDate } = fields;
 
       const post = await Post.create({
         title,
         description,
+        endDate,
         files,
         createdById: accessToken.userId,
         container: BUCKET
@@ -313,9 +314,7 @@ module.exports = function(Post) {
     const count = await Post.count({});
 
     const posts = await Post.find({
-      include: {
-        relation: "feedbacks"
-      },
+      include: ["feedbacks", "category"],
       limit,
       skip
     });
@@ -387,7 +386,17 @@ module.exports = function(Post) {
       where: {
         id: postId
       },
-      include: ["feedbacks"]
+      include: [
+        {
+          relation: "feedbacks",
+          scope: {
+            include: ["createdBy", "feedbackReplays"]
+          }
+        },
+        {
+          relation: "createdBy"
+        }
+      ]
     });
 
     if (!post) throw error("post doesn't exist.", 404);

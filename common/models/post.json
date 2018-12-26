@@ -49,6 +49,10 @@
     "feedbacks": {
       "type": "hasMany",
       "model": "Feedback"
+    },
+    "category": {
+      "type": "belongsTo",
+      "model": "PostCategory"
     }
   },
   "acls": [
