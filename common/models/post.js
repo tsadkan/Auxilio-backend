@@ -428,7 +428,7 @@ module.exports = function(Post) {
 
     let result = addPostProgress([post]);
     result = await addVotes(result);
-    return result;
+    return result[0];
   };
 
   Post.remoteMethod("detail", {
