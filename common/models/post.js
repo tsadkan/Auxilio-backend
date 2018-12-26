@@ -290,7 +290,11 @@ module.exports = function(Post) {
     });
 
     if (!postVotes || !postVotes.length) {
-      return posts;
+      return posts.map(post => {
+        post.upVote = 0;
+        post.downVote = 0;
+        return post;
+      });
     }
     return posts.map(post => {
       post.upVote = 0;
