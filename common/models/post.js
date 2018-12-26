@@ -216,7 +216,7 @@ module.exports = function(Post) {
       const requiredFields = ["title", "categoryId", "endDate"];
       validateRequiredFields(requiredFields, fields);
 
-      const { title, description, endDate } = fields;
+      const { title, description, endDate, categoryId } = fields;
 
       const post = await Post.create({
         title,
@@ -224,6 +224,7 @@ module.exports = function(Post) {
         endDate,
         files,
         createdById: accessToken.userId,
+        categoryId,
         container: BUCKET
       });
 

@@ -100,7 +100,7 @@ module.exports = function(UserAccount) {
       "email",
       "phoneNumber",
       "password",
-      "profilePricture"
+      "profilePicture"
     ];
     const requiredFields = ["id"];
 
