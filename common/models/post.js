@@ -426,7 +426,9 @@ module.exports = function(Post) {
       { postId, userAccountId: user.id, lastSeen }
     );
 
-    return post;
+    let result = addPostProgress([post]);
+    result = await addVotes(result);
+    return result;
   };
 
   Post.remoteMethod("detail", {
