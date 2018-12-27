@@ -316,6 +316,29 @@ module.exports = function(Post) {
   });
 
   /**
+   * Attach isOwner flag for feedback replies
+   * @param {Array} feedbacks
+   */
+  const includeRepliesOwner = async (userId, feedbacks) =>
+    feedbacks.map(feedback => {
+      feedback.replies = feedback.replies().map(reply => {
+        reply.isOwner = isOwner(userId, reply);
+        return reply;
+      });
+      return feedback;
+    });
+
+  /**
+   * Attach isOwner flag for feedbacks
+   * @param {Array} feedbacks
+   */
+  const includeFeedbacksOwner = async (userId, feedbacks) =>
+    feedbacks.map(feedback => {
+      feedback.isOwner = isOwner(userId, feedback);
+      return feedback;
+    });
+
+  /**
    * Attach up vote & down vote amount for feedbacks
    * @param {Array} feedbacks
    */
@@ -558,6 +581,8 @@ module.exports = function(Post) {
 
     post.numberOfFeedbacks = (post.feedbacks() && post.feedbacks().length) || 0;
     post.isOwner = isOwner(userId, post);
+    post.feedbacks = includeFeedbacksOwner(userId, post.feedbacks());
+    post.feedbacks = includeRepliesOwner(userId, post.feedbacks);
     let result = await includeFeedbackVotes(post.feedbacks());
     result = includePostProgress([post]);
     result = await includePostVotes(result);
