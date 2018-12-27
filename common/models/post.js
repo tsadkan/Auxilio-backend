@@ -4,6 +4,7 @@ const { differenceInDays } = require("date-fns");
 
 const {
   error,
+  isOwner,
   validatesAbsenceOf,
   validateRequiredFields,
   sort
@@ -315,18 +316,6 @@ module.exports = function(Post) {
   });
 
   /**
-   * check if a post is owned by userId
-   * @param {String} userId
-   * @param {Object} post
-   */
-  const isUserPost = (userId, post) => {
-    if (!post || !userId) {
-      return false;
-    }
-    return userId.toString() === post.createdById.toString();
-  };
-
-  /**
    * Attach up vote & down vote amount for feedbacks
    * @param {Array} feedbacks
    */
@@ -473,7 +462,7 @@ module.exports = function(Post) {
 
     // include post ownership detail
     newPosts = newPosts.map(post => {
-      post.isOwner = isUserPost(userId, post);
+      post.isOwner = isOwner(userId, post);
       return post;
     });
 
@@ -568,7 +557,7 @@ module.exports = function(Post) {
     );
 
     post.numberOfFeedbacks = (post.feedbacks() && post.feedbacks().length) || 0;
-    post.isOwner = isUserPost(userId, post);
+    post.isOwner = isOwner(userId, post);
     let result = await includeFeedbackVotes(post.feedbacks());
     result = includePostProgress([post]);
     result = await includePostVotes(result);
