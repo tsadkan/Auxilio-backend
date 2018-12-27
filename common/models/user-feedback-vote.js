@@ -44,7 +44,27 @@ module.exports = function(UserFeedbackVote) {
       { feedbackId, userId, vote: newVote }
     );
 
-    return { success: true };
+    const feedbackVotes = await UserFeedbackVote.find({
+      where: { feedbackId }
+    });
+    if (!feedbackVotes) {
+      throw error();
+    }
+    return feedbackVotes.reduce(
+      (result, feedback) => {
+        if (feedback.vote === 1) {
+          result.upVote += 1;
+        }
+        if (feedback.vote === -1) {
+          result.downVote += 1;
+        }
+        return result;
+      },
+      {
+        upVote: 0,
+        downVote: 0
+      }
+    );
   };
 
   UserFeedbackVote.remoteMethod("vote", {

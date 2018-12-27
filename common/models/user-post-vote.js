@@ -45,7 +45,25 @@ module.exports = function(UserPostVote) {
       { postId, userId, vote: newVote }
     );
 
-    return { success: true };
+    const postVotes = await UserPostVote.find({ where: { postId } });
+    if (!postVotes) {
+      throw error();
+    }
+    return postVotes.reduce(
+      (result, post) => {
+        if (post.vote === 1) {
+          result.upVote += 1;
+        }
+        if (post.vote === -1) {
+          result.downVote += 1;
+        }
+        return result;
+      },
+      {
+        upVote: 0,
+        downVote: 0
+      }
+    );
   };
 
   UserPostVote.remoteMethod("vote", {
