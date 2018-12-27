@@ -225,7 +225,18 @@ module.exports = function(Feedback) {
         container: BUCKET
       });
 
-      return feedback;
+      const result = Feedback.findOne({
+        where: { id: feedback.id },
+        include: [
+          {
+            relation: "createdBy",
+            scope: {
+              fields: { fullName: true, email: true, profilePicture: true }
+            }
+          }
+        ]
+      });
+      return result;
     } catch (err) {
       throw err;
     }

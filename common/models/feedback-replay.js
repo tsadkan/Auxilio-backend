@@ -232,7 +232,18 @@ module.exports = function(FeedbackReply) {
         container: BUCKET
       });
 
-      return reply;
+      const result = FeedbackReply.findOne({
+        where: { id: reply.id },
+        include: [
+          {
+            relation: "createdBy",
+            scope: {
+              fields: { fullName: true, email: true, profilePicture: true }
+            }
+          }
+        ]
+      });
+      return result;
     } catch (err) {
       throw err;
     }
