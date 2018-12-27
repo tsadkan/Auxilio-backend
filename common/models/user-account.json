@@ -6,13 +6,17 @@
   "options": {
     "validateUpsert": false
   },
-  "hidden": ["password"],
+  "hidden": [
+    "password"
+  ],
   "mixins": {
     "TimeStamp": true,
     "SoftDelete": true,
     "RowCount": true
   },
-  "protected": ["password"],
+  "protected": [
+    "password"
+  ],
   "properties": {
     "title": {
       "type": "string",
@@ -30,7 +34,7 @@
     },
     "profilePicture": {
       "type": "string",
-      "default":"avatar_anonymous.png"
+      "default": "avatar_anonymous.png"
     },
     "password": {
       "type": "string",

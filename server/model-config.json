@@ -204,5 +204,17 @@
         }
       }
     }
+  },
+  "UserFeedbackVote": {
+    "dataSource": "mongo",
+    "public": true,
+    "options": {
+      "remoting": {
+        "sharedMethods": {
+          "*": false,
+          "vote": true
+        }
+      }
+    }
   }
 }

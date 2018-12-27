@@ -258,10 +258,45 @@ module.exports = function(Post) {
   });
 
   /**
+   * Attach up vote & down vote amount for feedbacks
+   * @param {Array} feedbacks
+   */
+  const includeFeedbackVotes = async feedbacks => {
+    const { UserFeedbackVote } = Post.app.models;
+    const feedbackIds = feedbacks.map(feedback => feedback.id);
+    const feedbackVotes = await UserFeedbackVote.find({
+      id: { inq: feedbackIds }
+    });
+
+    if (!feedbackVotes || !feedbackVotes.length) {
+      return feedbacks.map(feedback => {
+        feedback.upVote = 0;
+        feedback.downVote = 0;
+        return feedback;
+      });
+    }
+    return feedbacks.map(feedback => {
+      feedback.upVote = 0;
+      feedback.downVote = 0;
+      for (const feedbackVote of feedbackVotes) {
+        if (feedbackVote.feedbackId.toString() === feedback.id.toString()) {
+          if (feedbackVote.vote === 1) {
+            feedback.upVote += 1;
+          }
+          if (feedbackVote.vote === -1) {
+            feedback.downVote += 1;
+          }
+        }
+      }
+      return feedback;
+    });
+  };
+
+  /**
    * Attach remaining days and progress on posts
    * @param {Array} posts
    */
-  const addPostProgress = posts =>
+  const includePostProgress = posts =>
     posts.map(post => {
       const totalDays =
         post.endDate && post.startDate
@@ -282,7 +317,7 @@ module.exports = function(Post) {
    * Attach up vote & down vote amount for posts
    * @param {Array} posts
    */
-  const addVotes = async posts => {
+  const includePostVotes = async posts => {
     const { UserPostVote } = Post.app.models;
     const postIds = posts.map(post => post.id);
     const postVotes = await UserPostVote.find({
@@ -366,8 +401,8 @@ module.exports = function(Post) {
 
     newPosts = sort(newPosts, "newFeedbacks");
 
-    let result = addPostProgress(newPosts);
-    result = await addVotes(result);
+    let result = includePostProgress(newPosts);
+    result = await includePostVotes(result);
     return { count, rows: result };
   };
 
@@ -442,8 +477,9 @@ module.exports = function(Post) {
 
     post.numberOfFeedbacks = (post.feedbacks() && post.feedbacks().length) || 0;
 
-    let result = addPostProgress([post]);
-    result = await addVotes(result);
+    let result = await includeFeedbackVotes(post.feedbacks());
+    result = includePostProgress([post]);
+    result = await includePostVotes(result);
     return result[0];
   };
 

@@ -17,7 +17,9 @@
       "required": true
     },
     "files": {
-      "type": ["object"]
+      "type": [
+        "object"
+      ]
     },
     "container": {
       "type": "string",

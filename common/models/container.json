@@ -1,17 +1,14 @@
 {
-    "name": "Container",
-    "base": "Model",
-    "idInjection": true,
-    "options": {
-      "validateUpsert": true
-    },
-    "mixins": {
-      
-    },
-    "properties": {},
-    "validations": [],
-    "relations": {},
-    "acls": [],
-    "methods": {}
-  }
-  
+  "name": "Container",
+  "base": "Model",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {},
+  "properties": {},
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
