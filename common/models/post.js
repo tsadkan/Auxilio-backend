@@ -445,7 +445,23 @@ module.exports = function(Post) {
           relation: "feedbacks",
           scope: {
             include: [
-              { relation: "replies" },
+              {
+                relation: "replies",
+                scope: {
+                  include: [
+                    {
+                      relation: "createdBy",
+                      scope: {
+                        fields: {
+                          fullName: true,
+                          email: true,
+                          profilePicture: true
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
               {
                 relation: "createdBy",
                 scope: {
