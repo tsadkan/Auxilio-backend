@@ -68,16 +68,16 @@ module.exports = function(FeedbackReply) {
           }))
         : undefined;
 
-      const requiredFields = ["replyId"];
-      const abscencefields = ["id", "body", "replyId"];
+      const requiredFields = ["id"];
+      const abscencefields = ["id", "body"];
 
       validateRequiredFields(requiredFields, fields);
       validatesAbsenceOf(abscencefields, fields);
 
-      const { replyId } = fields;
+      const { id } = fields;
       const reply = await FeedbackReply.findOne({
         where: {
-          id: replyId
+          id
         },
         include: ["createdBy"]
       });
@@ -85,7 +85,7 @@ module.exports = function(FeedbackReply) {
       if (!reply) throw error("reply doesn't exist.", 403);
 
       // check if the reply is created by this user
-      if (accessToken.userId.toString() !== reply.createdBy().id.toString())
+      if (accessToken.userId.toString() !== reply.createdById.toString())
         throw error("Cannot update others reply.", 403);
 
       delete fields.id;
@@ -123,6 +123,7 @@ module.exports = function(FeedbackReply) {
   // delete feedback reply
   FeedbackReply.deleteMyReply = async (accessToken, replyId) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
+    if (!replyId) throw error("replyId is required", 403);
 
     const reply = await FeedbackReply.findOne({
       where: {

@@ -136,6 +136,7 @@ module.exports = function(Post) {
     const { Feedback, FeedbackReply, Container } = Post.app.models;
 
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
+    if (!postId) throw error("postId is required", 403);
 
     const post = await Post.findOne({
       where: {
@@ -148,6 +149,8 @@ module.exports = function(Post) {
 
     if (!post) throw error("post doesn't exist.", 403);
 
+    // console.log(accessToken.userId.toString());
+    // console.log(post.createdById.toString());
     // check if the post is created by this user
     if (accessToken.userId.toString() !== post.createdById.toString())
       throw error("Cannot delete others post.", 403);
@@ -516,7 +519,7 @@ module.exports = function(Post) {
         // attach new feedbacks to post object
         post.newFeedbacks = newFeedbacks;
         // attach number of feedbacks post object
-        post.numberOfFeedbacks = post.feedbacks.length;
+        post.numberOfFeedbacks = post.feedbacks().length;
         // @todo delete feedbacks
         return post;
       })

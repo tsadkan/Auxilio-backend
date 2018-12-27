@@ -63,16 +63,17 @@ module.exports = function(Feedback) {
           }))
         : undefined;
 
-      const requiredFields = ["feedbackId"];
-      const abscencefields = ["id", "body", "feedbackId"];
+      const requiredFields = ["id"];
+      const abscencefields = ["id", "body"];
 
       validateRequiredFields(requiredFields, fields);
       validatesAbsenceOf(abscencefields, fields);
 
-      const { feedbackId } = fields;
+      const { id } = fields;
+
       const feedback = await Feedback.findOne({
         where: {
-          id: feedbackId
+          id
         },
         include: ["createdBy"]
       });
@@ -84,7 +85,6 @@ module.exports = function(Feedback) {
         throw error("Cannot update others feedback.", 403);
 
       delete fields.id;
-      delete fields.feedbackId;
       await feedback.patchAttributes({ ...fields, files });
 
       return feedback;
@@ -120,6 +120,7 @@ module.exports = function(Feedback) {
     const { FeedbackReply } = Feedback.app.models;
 
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
+    if (!feedbackId) throw error("feedbackId is required", 403);
 
     const feedback = await Feedback.findOne({
       where: {
