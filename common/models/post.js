@@ -258,6 +258,18 @@ module.exports = function(Post) {
   });
 
   /**
+   * check if a post is owned by userId
+   * @param {String} userId
+   * @param {Object} post
+   */
+  const isUserPost = (userId, post) => {
+    if (!post || !userId) {
+      return false;
+    }
+    return userId.toString() === post.createdById.toString();
+  };
+
+  /**
    * Attach up vote & down vote amount for feedbacks
    * @param {Array} feedbacks
    */
@@ -352,8 +364,10 @@ module.exports = function(Post) {
   Post.list = async (limit, skip, filter, accessToken) => {
     const { UserPostStatus, Feedback } = Post.app.models;
 
-    if (!accessToken || !accessToken.userId)
+    if (!accessToken || !accessToken.userId) {
       throw error("Unauthorized User", 403);
+    }
+    const { userId } = accessToken;
 
     limit = limit || 0;
     skip = skip || 0;
@@ -375,7 +389,7 @@ module.exports = function(Post) {
         const userPostStatus = await UserPostStatus.findOne({
           where: {
             postId: post.id,
-            UserAccountId: accessToken.userId
+            userAccountId: userId
           }
         });
 
@@ -392,14 +406,19 @@ module.exports = function(Post) {
         // attach new feedbacks to post object
         post.newFeedbacks = newFeedbacks;
         // attach number of feedbacks post object
-        post.numberOfFeedbacks = post.feedbacks().length;
-        delete post.feedbacks;
-
+        post.numberOfFeedbacks = post.feedbacks.length;
+        // @todo delete feedbacks
         return post;
       })
     );
 
     newPosts = sort(newPosts, "newFeedbacks");
+
+    // include post ownership detail
+    newPosts = newPosts.map(post => {
+      post.isOwner = isUserPost(userId, post);
+      return post;
+    });
 
     let result = includePostProgress(newPosts);
     result = await includePostVotes(result);
@@ -492,7 +511,7 @@ module.exports = function(Post) {
     );
 
     post.numberOfFeedbacks = (post.feedbacks() && post.feedbacks().length) || 0;
-
+    post.isOwner = isUserPost(userId, post);
     let result = await includeFeedbackVotes(post.feedbacks());
     result = includePostProgress([post]);
     result = await includePostVotes(result);
