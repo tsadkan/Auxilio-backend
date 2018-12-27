@@ -330,6 +330,46 @@ module.exports = function(Post) {
     });
 
   /**
+   * Attach users voted status for a post
+   * @param {Array} feedbacks
+   */
+  const includeUserFeedbackVoteStatus = async (userId, feedbacks) => {
+    const { UserFeedbackVote } = Post.app.models;
+    for (const feedback of feedbacks) {
+      // eslint-disable-next-line
+      const reaction = await UserFeedbackVote.findOne({
+        where: {
+          userId,
+          feedbackId: feedback.id
+        }
+      });
+      Post.app.logger.info(reaction);
+      feedback.voted = (reaction && reaction.vote) || 0;
+    }
+    return feedbacks;
+  };
+
+  /**
+   * Attach users voted status for a post
+   * @param {Array} feedbacks
+   */
+  const includeUserPostVoteStatus = async (userId, posts) => {
+    const { UserPostVote } = Post.app.models;
+    for (const post of posts) {
+      // eslint-disable-next-line
+      const reaction = await UserPostVote.findOne({
+        where: {
+          userId,
+          postId: post.id
+        }
+      });
+
+      post.voted = (reaction && reaction.vote) || 0;
+    }
+    return posts;
+  };
+
+  /**
    * Attach isOwner flag for feedbacks
    * @param {Array} feedbacks
    */
@@ -583,9 +623,12 @@ module.exports = function(Post) {
 
     post.numberOfFeedbacks = (post.feedbacks() && post.feedbacks().length) || 0;
     post.isOwner = isOwner(userId, post);
+
     post.feedbacks = includeFeedbacksOwner(userId, post.feedbacks());
-    post.feedbacks = includeRepliesOwner(userId, post.feedbacks);
+    post.feedbacks = includeRepliesOwner(userId, post.feedbacks());
+    post.feedbacks = includeUserFeedbackVoteStatus(userId, post.feedbacks());
     let result = await includeFeedbackVotes(post.feedbacks());
+    result = includeUserPostVoteStatus(userId, [post]);
     result = includePostProgress([post]);
     result = await includePostVotes(result);
     return result[0];

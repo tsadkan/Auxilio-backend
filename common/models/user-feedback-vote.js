@@ -50,21 +50,27 @@ module.exports = function(UserFeedbackVote) {
     if (!feedbackVotes) {
       throw error();
     }
-    return feedbackVotes.reduce(
-      (result, feedback) => {
+    const result = feedbackVotes.reduce(
+      (agg, feedback) => {
         if (feedback.vote === 1) {
-          result.upVote += 1;
+          agg.upVote += 1;
         }
         if (feedback.vote === -1) {
-          result.downVote += 1;
+          agg.downVote += 1;
         }
-        return result;
+        return agg;
       },
       {
         upVote: 0,
         downVote: 0
       }
     );
+    const userReaction = await UserFeedbackVote.findOne({
+      where: { feedbackId, userId }
+    });
+    result.voted = userReaction.vote;
+
+    return result;
   };
 
   UserFeedbackVote.remoteMethod("vote", {

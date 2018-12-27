@@ -49,21 +49,28 @@ module.exports = function(UserPostVote) {
     if (!postVotes) {
       throw error();
     }
-    return postVotes.reduce(
-      (result, post) => {
+    const result = postVotes.reduce(
+      (agg, post) => {
         if (post.vote === 1) {
-          result.upVote += 1;
+          agg.upVote += 1;
         }
         if (post.vote === -1) {
-          result.downVote += 1;
+          agg.downVote += 1;
         }
-        return result;
+        return agg;
       },
       {
         upVote: 0,
         downVote: 0
       }
     );
+
+    const userReaction = await UserPostVote.findOne({
+      where: { postId, userId }
+    });
+    result.voted = userReaction.vote;
+
+    return result;
   };
 
   UserPostVote.remoteMethod("vote", {
