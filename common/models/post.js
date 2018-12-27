@@ -393,38 +393,54 @@ module.exports = function(Post) {
 
   // get detail of a post
   Post.detail = async (postId, accessToken) => {
-    const { UserAccount, UserPostStatus } = Post.app.models;
+    const { UserPostStatus } = Post.app.models;
 
     if (!accessToken || !accessToken.userId)
       throw error("Unauthorized User", 403);
 
     const post = await Post.findOne({
-      where: {
-        id: postId
-      },
+      where: { id: postId },
+      fields: { _isDeleted: false },
       include: [
+        {
+          relation: "category",
+          scope: { fields: { id: true, name: true, color: true } }
+        },
         {
           relation: "feedbacks",
           scope: {
-            include: ["createdBy", "category", "feedbackReplays"]
+            include: [
+              { relation: "feedbackReplays" },
+              {
+                relation: "createdBy",
+                scope: {
+                  fields: { fullName: true, email: true, profilePicture: true }
+                }
+              }
+            ]
           }
         },
         {
-          relation: "createdBy"
+          relation: "createdBy",
+          scope: {
+            fields: { fullName: true, email: true, profilePicture: true }
+          }
         }
       ]
     });
 
     if (!post) throw error("post doesn't exist.", 404);
 
-    const user = await UserAccount.findById(accessToken.userId);
+    const { userId } = accessToken;
 
     // update/insert user seen status
     const lastSeen = new Date();
     await UserPostStatus.upsertWithWhere(
-      { postId, userAccountId: user.id },
-      { postId, userAccountId: user.id, lastSeen }
+      { postId, userAccountId: userId },
+      { postId, userAccountId: userId, lastSeen }
     );
+
+    post.numberOfFeedbacks = (post.feedbacks() && post.feedbacks().length) || 0;
 
     let result = addPostProgress([post]);
     result = await addVotes(result);
