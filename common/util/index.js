@@ -1,4 +1,4 @@
-const error = (message, code) => {
+const errorWrapper = (message, code) => {
   const e = new Error(message || "Internal Server Error!");
   e.status = code || 500;
   e.expose = true;
@@ -6,6 +6,7 @@ const error = (message, code) => {
 };
 
 module.exports = {
+  error: errorWrapper,
   /**
    * Check if a data is owned by userId
    * Note:
@@ -24,14 +25,14 @@ module.exports = {
   validateRequiredFields(fields, data) {
     for (let i = 0, l = fields.length; i < l; i += 1) {
       if (Object.keys(data).indexOf(fields[i]) === -1) {
-        error(`property ${fields} is required`, 422);
+        errorWrapper(`property ${fields} is required`, 422);
       }
     }
   },
   validatesAbsenceOf(fields, data) {
     for (const key in data) {
       if (fields.indexOf(key) === -1) {
-        error(`property ${key} doesn't exist.`, 422);
+        errorWrapper(`property ${key} doesn't exist.`, 422);
       }
     }
   },
