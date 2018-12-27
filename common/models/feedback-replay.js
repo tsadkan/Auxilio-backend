@@ -162,21 +162,27 @@ module.exports = function(FeedbackReplay) {
           }))
         : undefined;
 
-      const requiredFields = ["body", "postId", "feedbackId"];
+      const requiredFields = ["body", "feedbackId"];
       validateRequiredFields(requiredFields, fields);
 
-      const { body, postId, feedbackId } = fields;
+      const { body, feedbackId } = fields;
 
-      const feedback = await FeedbackReplay.create({
+      const { Feedback } = FeedbackReplay.app.models;
+      const feedback = await Feedback.findOne({ where: { id: feedbackId } });
+
+      if (!feedback) {
+        throw error("Invalid feedback Id", 422);
+      }
+      const reply = await FeedbackReplay.create({
         body,
         files,
-        postId,
+        postId: feedback.postId,
         feedbackId,
         createdById: accessToken.userId,
         container: BUCKET
       });
 
-      return feedback;
+      return reply;
     } catch (err) {
       throw err;
     }
