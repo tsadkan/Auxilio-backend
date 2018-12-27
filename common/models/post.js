@@ -74,7 +74,7 @@ module.exports = function(Post) {
 
   // delete post
   Post.deleteMyPost = async (accessToken, postId) => {
-    const { Feedback, FeedbackReplay, Container } = Post.app.models;
+    const { Feedback, FeedbackReply, Container } = Post.app.models;
 
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
 
@@ -99,7 +99,7 @@ module.exports = function(Post) {
       }
     });
 
-    const replies = FeedbackReplay.find({
+    const replies = FeedbackReply.find({
       where: {
         postId
       }
@@ -109,7 +109,7 @@ module.exports = function(Post) {
     await Feedback.destroyAll({
       postId
     });
-    await FeedbackReplay.destroyAll({
+    await FeedbackReply.destroyAll({
       postId
     });
 
@@ -410,7 +410,7 @@ module.exports = function(Post) {
           relation: "feedbacks",
           scope: {
             include: [
-              { relation: "feedbackReplays" },
+              { relation: "replies" },
               {
                 relation: "createdBy",
                 scope: {

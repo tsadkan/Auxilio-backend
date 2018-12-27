@@ -6,21 +6,21 @@ const {
   validateRequiredFields
 } = require("../util");
 
-module.exports = function(FeedbackReplay) {
+module.exports = function(FeedbackReply) {
   const BUCKET = "feedback-reply";
 
-  FeedbackReplay.validatesPresenceOf("createdById", {
+  FeedbackReply.validatesPresenceOf("createdById", {
     message: "createdById is required"
   });
-  FeedbackReplay.validatesPresenceOf("postId", {
+  FeedbackReply.validatesPresenceOf("postId", {
     message: "postId is required"
   });
-  FeedbackReplay.validatesPresenceOf("feedbackId", {
+  FeedbackReply.validatesPresenceOf("feedbackId", {
     message: "feedbackId is required"
   });
 
   // update feedback reply
-  FeedbackReplay.updateMyReply = async (accessToken, body) => {
+  FeedbackReply.updateMyReply = async (accessToken, body) => {
     const fields = ["id", "body", "files"];
     const requiredFields = ["id"];
 
@@ -29,7 +29,7 @@ module.exports = function(FeedbackReplay) {
     validateRequiredFields(requiredFields, body);
     validatesAbsenceOf(fields, body);
 
-    const reply = await FeedbackReplay.findOne({
+    const reply = await FeedbackReply.findOne({
       where: {
         id: body.id
       },
@@ -49,7 +49,7 @@ module.exports = function(FeedbackReplay) {
 
     return { status: true };
   };
-  FeedbackReplay.remoteMethod("updateMyReply", {
+  FeedbackReply.remoteMethod("updateMyReply", {
     description: "Update users's reply.",
     accepts: [
       {
@@ -71,10 +71,10 @@ module.exports = function(FeedbackReplay) {
   });
 
   // delete feedback reply
-  FeedbackReplay.deleteMyReply = async (accessToken, replyId) => {
+  FeedbackReply.deleteMyReply = async (accessToken, replyId) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
 
-    const reply = await FeedbackReplay.findOne({
+    const reply = await FeedbackReply.findOne({
       where: {
         id: replyId
       },
@@ -89,11 +89,11 @@ module.exports = function(FeedbackReplay) {
     if (accessToken.userId.toString() !== reply.createdBy().id.toString())
       throw error("Cannot delete others reply.", 403);
 
-    await FeedbackReplay.destroyById(replyId);
+    await FeedbackReply.destroyById(replyId);
 
     return { status: true };
   };
-  FeedbackReplay.remoteMethod("deleteMyReply", {
+  FeedbackReply.remoteMethod("deleteMyReply", {
     description: "delete users's reply.",
     accepts: [
       {
@@ -114,13 +114,13 @@ module.exports = function(FeedbackReplay) {
     http: { verb: "delete", path: "/delete-my-reply" }
   });
 
-  FeedbackReplay.createReply = async (accessToken, req, res) => {
+  FeedbackReply.createReply = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
     const {
       name: storageName,
       root: storageRoot
-    } = FeedbackReplay.app.dataSources.storage.settings;
+    } = FeedbackReply.app.dataSources.storage.settings;
 
     if (storageName === "storage") {
       const path = `${storageRoot}/${BUCKET}/`;
@@ -130,7 +130,7 @@ module.exports = function(FeedbackReplay) {
       }
     } else throw Error("Unknown Storage", 400);
 
-    const { Container } = FeedbackReplay.app.models;
+    const { Container } = FeedbackReply.app.models;
     const form = new formidable.IncomingForm();
 
     const filePromise = new Promise(resolve => {
@@ -167,13 +167,13 @@ module.exports = function(FeedbackReplay) {
 
       const { body, feedbackId } = fields;
 
-      const { Feedback } = FeedbackReplay.app.models;
+      const { Feedback } = FeedbackReply.app.models;
       const feedback = await Feedback.findOne({ where: { id: feedbackId } });
 
       if (!feedback) {
         throw error("Invalid feedback Id", 422);
       }
-      const reply = await FeedbackReplay.create({
+      const reply = await FeedbackReply.create({
         body,
         files,
         postId: feedback.postId,
@@ -188,7 +188,7 @@ module.exports = function(FeedbackReplay) {
     }
   };
 
-  FeedbackReplay.remoteMethod("createReply", {
+  FeedbackReply.remoteMethod("createReply", {
     description: "Create reply with uploaded file.",
     accepts: [
       {

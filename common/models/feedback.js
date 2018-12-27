@@ -67,7 +67,7 @@ module.exports = function(Feedback) {
 
   // delete feedback
   Feedback.deleteMyFeedback = async (accessToken, feedbackId) => {
-    const { FeedbackReplay } = Feedback.app.models;
+    const { FeedbackReply } = Feedback.app.models;
 
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
 
@@ -87,7 +87,7 @@ module.exports = function(Feedback) {
       throw error("Cannot delete others feedback.", 403);
 
     await Feedback.destroyById(feedbackId);
-    await FeedbackReplay.destroyAll({
+    await FeedbackReply.destroyAll({
       feedbackId
     });
 

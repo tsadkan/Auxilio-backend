@@ -20,7 +20,7 @@ module.exports = function(Search) {
    * Search from everything
    *    Post [title,description,createdBy[fullName & email,phoneNumber]]
    *    Feedback [body,createdBy[fullName & email,phoneNumber]]
-   *    FeedbackReplay [body,createdBy[fullName & email,phoneNumber]]
+   *    FeedbackReply [body,createdBy[fullName & email,phoneNumber]]
    *
    * @param {String} q search query term
    */

@@ -1,5 +1,5 @@
 {
-  "name": "FeedbackReplay",
+  "name": "FeedbackReply",
   "base": "PersistedModel",
   "strict": true,
   "idInjection": true,
@@ -17,9 +17,7 @@
       "required": true
     },
     "files": {
-      "type": [
-        "object"
-      ]
+      "type": ["object"]
     },
     "container": {
       "type": "string",

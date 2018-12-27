@@ -7,7 +7,7 @@ module.exports = async app => {
   const {
     Post,
     Feedback,
-    FeedbackReplay,
+    FeedbackReply,
     UserAccount,
     UserRole,
     PostCategory
@@ -20,7 +20,7 @@ module.exports = async app => {
   const enoughDataAvailable = async () => {
     const posts = await Post.count();
     const feedbacks = await Feedback.count();
-    const replays = await FeedbackReplay.count();
+    const replays = await FeedbackReply.count();
     return (
       posts &&
       feedbacks &&
@@ -88,9 +88,9 @@ module.exports = async app => {
 
     const feedbacksCreated = await Feedback.create(feedbacks);
 
-    const feedbackReplays = [];
+    const replies = [];
     for (let i = 0; i < SEED_REPLAYS_AMOUNT; i += 1) {
-      feedbackReplays.push({
+      replies.push({
         body: casual.text,
         createdById: accounts[Math.floor(Math.random() * accounts.length)].id,
         postId:
@@ -100,7 +100,7 @@ module.exports = async app => {
             .id
       });
     }
-    await FeedbackReplay.create(feedbackReplays);
+    await FeedbackReply.create(replies);
     app.logger.info("Dev Seed Complete");
   } catch (err) {
     if (err) {

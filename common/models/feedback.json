@@ -34,9 +34,9 @@
       "type": "belongsTo",
       "model": "Post"
     },
-    "feedbackReplays": {
+    "replies": {
       "type": "hasMany",
-      "model": "FeedbackReplay"
+      "model": "FeedbackReply"
     }
   },
   "acls": [
