@@ -78,7 +78,8 @@ module.exports = function(Post) {
         "description",
         "endDate",
         "startDate",
-        "postId"
+        "postId",
+        "categoryId"
       ];
 
       validateRequiredFields(requiredFields, fields);
@@ -556,7 +557,8 @@ module.exports = function(Post) {
                   fields: { fullName: true, email: true, profilePicture: true }
                 }
               }
-            ]
+            ],
+            order: "createdAt DESC"
           }
         },
         {
