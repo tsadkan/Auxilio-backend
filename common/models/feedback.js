@@ -80,7 +80,7 @@ module.exports = function(Feedback) {
       if (!feedback) throw error("feedback doesn't exist.", 403);
 
       // check if the feedback is created by this user
-      if (accessToken.userId.toString() !== feedback.createdBy().id.toString())
+      if (accessToken.userId.toString() !== feedback.createdById.toString())
         throw error("Cannot update others feedback.", 403);
 
       delete fields.id;

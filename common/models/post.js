@@ -71,7 +71,14 @@ module.exports = function(Post) {
         : undefined;
 
       const requiredFields = ["postId"];
-      const abscencefields = ["id", "title", "description", "postId"];
+      const abscencefields = [
+        "id",
+        "title",
+        "description",
+        "endDate",
+        "startDate",
+        "postId"
+      ];
 
       validateRequiredFields(requiredFields, fields);
       validatesAbsenceOf(abscencefields, fields);
@@ -140,16 +147,16 @@ module.exports = function(Post) {
     if (!post) throw error("post doesn't exist.", 403);
 
     // check if the post is created by this user
-    if (accessToken.userId.toString() !== post.createdBy().id.toString())
+    if (accessToken.userId.toString() !== post.createdById.toString())
       throw error("Cannot delete others post.", 403);
 
-    const feedbacks = Feedback.find({
+    const feedbacks = await Feedback.find({
       where: {
         postId
       }
     });
 
-    const replies = FeedbackReply.find({
+    const replies = await FeedbackReply.find({
       where: {
         postId
       }

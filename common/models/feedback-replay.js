@@ -136,7 +136,7 @@ module.exports = function(FeedbackReply) {
     if (!reply) throw error("feedback reply doesn't exist.", 403);
 
     // check if the reply is created by this user
-    if (accessToken.userId.toString() !== reply.createdBy().id.toString())
+    if (accessToken.userId.toString() !== reply.createdById.toString())
       throw error("Cannot delete others reply.", 403);
 
     await FeedbackReply.destroyById(replyId);
