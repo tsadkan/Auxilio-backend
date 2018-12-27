@@ -73,6 +73,13 @@
     {
       "accessType": "*",
       "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "findById"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
       "principalId": "$admin",
       "permission": "ALLOW",
       "property": "replaceById"

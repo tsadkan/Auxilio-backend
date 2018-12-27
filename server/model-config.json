@@ -107,6 +107,7 @@
       "remoting": {
         "sharedMethods": {
           "*": false,
+          "findById": true,
           "list": true,
           "detail": true,
           "deleteById": true,
