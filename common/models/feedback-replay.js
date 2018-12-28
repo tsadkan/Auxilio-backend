@@ -207,14 +207,10 @@ module.exports = function(FeedbackReply) {
       const requiredFields = ["body", "feedbackId"];
       validateRequiredFields(requiredFields, fields);
 
-      const {
-        body,
-        feedbackId,
-        fileTitle,
-        fileYear,
-        fileSummary,
-        fileBibliography
-      } = fields;
+      const { body, feedbackId, fileMeta } = fields;
+
+      const fileTitle = fileMeta.title;
+      const { year, summary, bibliography } = JSON.parse(fileMeta);
 
       // check if there are file ... if not make it undefined
       const files = filesInfo.file
@@ -227,9 +223,9 @@ module.exports = function(FeedbackReply) {
             },
             meta: {
               title: fileTitle,
-              year: fileYear,
-              summary: fileSummary,
-              bibliography: fileBibliography
+              year,
+              summary,
+              bibliography
             }
           }))
         : undefined;

@@ -269,16 +269,10 @@ module.exports = function(Post) {
       const requiredFields = ["title", "categoryId", "endDate"];
       validateRequiredFields(requiredFields, fields);
 
-      const {
-        title,
-        description,
-        endDate,
-        categoryId,
-        fileTitle,
-        fileYear,
-        fileSummary,
-        fileBibliography
-      } = fields;
+      const { title, description, endDate, categoryId, fileMeta } = fields;
+
+      const fileTitle = fileMeta.title;
+      const { year, summary, bibliography } = JSON.parse(fileMeta);
 
       // check if there are file ... if not make it undefined
       const files = filesInfo.file
@@ -291,9 +285,9 @@ module.exports = function(Post) {
             },
             meta: {
               title: fileTitle,
-              year: fileYear,
-              summary: fileSummary,
-              bibliography: fileBibliography
+              year,
+              summary,
+              bibliography
             }
           }))
         : undefined;
