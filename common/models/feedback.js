@@ -86,7 +86,7 @@ module.exports = function(Feedback) {
 
       delete fields.id;
       await feedback.patchAttributes({ ...fields, files });
-
+      feedback.isOwner = true;
       return feedback;
     } catch (err) {
       throw err;

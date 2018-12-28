@@ -91,7 +91,7 @@ module.exports = function(FeedbackReply) {
       delete fields.id;
       delete fields.replyId;
       await reply.patchAttributes({ ...fields, files });
-
+      reply.isOwner = true;
       return reply;
     } catch (err) {
       throw err;

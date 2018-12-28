@@ -95,14 +95,16 @@ module.exports = function(Post) {
 
       if (!post) throw error("post doesn't exist.", 403);
 
+      const { userId } = accessToken;
       // check if the post is created by this user
-      if (accessToken.userId.toString() !== post.createdBy().id.toString())
+      if (userId.toString() !== post.createdBy().id.toString())
         throw error("Cannot update others post.", 403);
 
       delete fields.id;
       delete fields.postId;
       await post.patchAttributes({ ...fields, files });
 
+      post.isOwner = true;
       return post;
     } catch (err) {
       throw err;
