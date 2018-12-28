@@ -94,7 +94,8 @@ module.exports = async app => {
         body: casual.text,
         createdById: accounts[Math.floor(Math.random() * accounts.length)].id,
         postId:
-          postsCreated[Math.floor(Math.random() * postsCreated.length)].id,
+          feedbacksCreated[Math.floor(Math.random() * feedbacksCreated.length)]
+            .postId,
         feedbackId:
           feedbacksCreated[Math.floor(Math.random() * feedbacksCreated.length)]
             .id
