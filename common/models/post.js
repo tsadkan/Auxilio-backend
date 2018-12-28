@@ -275,9 +275,10 @@ module.exports = function(Post) {
       let summary;
       let bibliography;
       let fileTitle;
-      if (fileMeta) {
-        ({ year, summary, bibliography } = JSON.parse(fileMeta));
-        fileTitle = JSON.parse(fileMeta).title;
+      if (fileMeta && JSON.parse(fileMeta)) {
+        const parsed = JSON.parse(fileMeta);
+        ({ year, summary, bibliography } = parsed);
+        fileTitle = parsed.title;
       }
 
       // check if there are file ... if not make it undefined

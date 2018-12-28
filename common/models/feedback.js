@@ -212,10 +212,9 @@ module.exports = function(Feedback) {
       let year;
       let summary;
       let bibliography;
-      let fileTitle;
-      if (fileMeta) {
-        ({ year, summary, bibliography } = JSON.parse(fileMeta));
-        fileTitle = JSON.parse(fileMeta).title;
+      let title;
+      if (fileMeta && JSON.parse(fileMeta)) {
+        ({ title, year, summary, bibliography } = JSON.parse(fileMeta));
       }
 
       // check if there are file ... if not make it undefined
@@ -228,7 +227,7 @@ module.exports = function(Feedback) {
               fileType: file.type
             },
             meta: {
-              title: fileTitle,
+              title,
               year,
               summary,
               bibliography
