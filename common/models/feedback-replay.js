@@ -209,8 +209,8 @@ module.exports = function(FeedbackReply) {
 
       const { body, feedbackId, fileMeta } = fields;
 
-      const fileTitle = fileMeta.title;
       const { year, summary, bibliography } = JSON.parse(fileMeta);
+      const fileTitle = JSON.parse(fileMeta).title;
 
       // check if there are file ... if not make it undefined
       const files = filesInfo.file
