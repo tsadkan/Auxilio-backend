@@ -283,14 +283,18 @@ module.exports = function(Post) {
       // check if there are file ... if not make it undefined
       const files = filesInfo.file
         ? filesInfo.file.map(file => ({
-            name: file.name,
-            size: file.size,
-            originalName: file.originalFilename,
-            fileType: file.type,
-            title: fileTitle,
-            year: fileYear,
-            summary: fileSummary,
-            bibliography: fileBibliography
+            file: {
+              name: file.name,
+              size: file.size,
+              originalName: file.originalFilename,
+              fileType: file.type
+            },
+            meta: {
+              title: fileTitle,
+              year: fileYear,
+              summary: fileSummary,
+              bibliography: fileBibliography
+            }
           }))
         : undefined;
 
