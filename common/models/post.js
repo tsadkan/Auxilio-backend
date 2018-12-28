@@ -304,7 +304,18 @@ module.exports = function(Post) {
         container: BUCKET
       });
 
-      return post;
+      const result = Post.findOne({
+        where: { id: post.id },
+        include: [
+          {
+            relation: "createdBy",
+            scope: {
+              fields: { fullName: true, email: true, profilePicture: true }
+            }
+          }
+        ]
+      });
+      return result;
     } catch (err) {
       throw err;
     }
