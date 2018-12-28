@@ -77,6 +77,7 @@ module.exports = function(UserAccount) {
         }
       },
       { arg: "title", type: "string", required: true },
+      { arg: "profilePicture", type: "string", required: false },
       { arg: "fullName", type: "string", required: true },
       { arg: "email", type: "string", required: true },
       { arg: "password", type: "string", required: true },

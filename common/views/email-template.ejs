@@ -334,11 +334,12 @@
     }
     
     .button--green {
-      background-color: #22BC66;
-      border-top: 10px solid #22BC66;
-      border-right: 18px solid #22BC66;
-      border-bottom: 10px solid #22BC66;
-      border-left: 18px solid #22BC66;
+      background-color: #ed0083;
+      border-top: 10px solid #ed0083;
+      border-right: 18px solid #ed0083;
+      border-bottom: 10px solid #ed0083;
+      border-left: 18px solid #ed0083;
+      color: #fff !important;
     }
     
     .button--red {
@@ -389,6 +390,11 @@
     p.center {
       text-align: center;
     }
+
+    .email-masthead_name {
+      color: #ed0083;
+      font-size: 30px;
+    }
     </style>
   </head>
   <body>
@@ -400,8 +406,8 @@
             <tr>
               <td class="email-masthead">
                 <a href="https://auxilio.org/" class="email-masthead_name">
-                auxilio
-      </a>
+                  Auxilio
+                </a>
               </td>
             </tr>
             <!-- Email Body -->
@@ -411,7 +417,7 @@
                   <!-- Body content -->
                   <tr>
                     <td class="content-cell">
-                      <h1>Hi <%= fullName %></h1>
+                      <h1>Hello <%= fullName %></h1>
                       <p>You recently requested to reset your password for your auxilio account. Use the button below to reset it. <strong>This password reset is only valid for the next 24 hours.</strong></p>
                       <!-- Action -->
                       <table class="body-action" align="center" width="100%" cellpadding="0" cellspacing="0">
