@@ -16,7 +16,6 @@ module.exports = function(UserPostVote) {
    * @param {Number} vote
    */
   UserPostVote.vote = async (accessToken, postId, vote) => {
-    UserPostVote.app.logger.info(vote, postId);
     const { Post } = UserPostVote.app.models;
     if (!(vote === 1 || vote === -1)) {
       throw error("Vote can only be 1 or -1", 422);

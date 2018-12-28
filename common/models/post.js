@@ -151,8 +151,6 @@ module.exports = function(Post) {
 
     if (!post) throw error("post doesn't exist.", 403);
 
-    // console.log(accessToken.userId.toString());
-    // console.log(post.createdById.toString());
     // check if the post is created by this user
     if (accessToken.userId.toString() !== post.createdById.toString())
       throw error("Cannot delete others post.", 403);
@@ -379,7 +377,6 @@ module.exports = function(Post) {
           feedbackId: feedback.id
         }
       });
-      Post.app.logger.info(reaction);
       feedback.voted = (reaction && reaction.vote) || 0;
     }
     return feedbacks;
