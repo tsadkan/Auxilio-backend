@@ -161,6 +161,10 @@
   "Email": {
     "dataSource": "email"
   },
+  "Search": {
+    "dataSource": null,
+    "public": true
+  },
   "PasswordReset": {
     "dataSource": "mongo",
     "public": false,

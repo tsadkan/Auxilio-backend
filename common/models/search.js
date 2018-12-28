@@ -5,6 +5,37 @@ const { ES_INDEX } = process.env;
 const SEARCH_RESULTS_SIZE = 20;
 
 module.exports = function(Search) {
+  Search.testSearch = async q => {
+    if (!q) return [];
+    const { Post, Feedback, FeedbackReply } = Search.app.models;
+    const posts = (await Post.find({
+      where: {
+        title: { like: `.*${q}.*`, options: "i" }
+      }
+    })).map(feedback => {
+      feedback.type = "POST";
+      return feedback;
+    });
+    const feedbacks = (await Feedback.find({
+      where: {
+        body: { like: `.*${q}.*`, options: "i" }
+      }
+    })).map(feedback => {
+      feedback.type = "FEEDBACK";
+      return feedback;
+    });
+    const replies = await FeedbackReply.find({
+      where: {
+        body: { like: `.*${q}.*`, options: "i" }
+      }
+    }).map(feedback => {
+      feedback.type = "REPLY";
+      return feedback;
+    });
+
+    const result = [...posts, feedbacks, replies];
+    return result;
+  };
   /**
    * converts es index name to frontend friendly name
    * e.g auxilio.post => POST
@@ -77,5 +108,15 @@ module.exports = function(Search) {
       root: true
     },
     http: { verb: "get", path: "/" }
+  });
+
+  Search.remoteMethod("testSearch", {
+    description: "Search temp implementation",
+    accepts: [{ arg: "q", type: "string" }],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "get", path: "/testSearch" }
   });
 };
