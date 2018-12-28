@@ -203,20 +203,32 @@ module.exports = function(FeedbackReply) {
         filePromise,
         fieldsPromise
       ]);
+
+      const requiredFields = ["body", "feedbackId"];
+      validateRequiredFields(requiredFields, fields);
+
+      const {
+        body,
+        feedbackId,
+        fileTitle,
+        fileYear,
+        fileSummary,
+        fileBibliography
+      } = fields;
+
       // check if there are file ... if not make it undefined
       const files = filesInfo.file
         ? filesInfo.file.map(file => ({
             name: file.name,
             size: file.size,
             originalName: file.originalFilename,
-            fileType: file.type
+            fileType: file.type,
+            title: fileTitle,
+            year: fileYear,
+            summary: fileSummary,
+            bibliography: fileBibliography
           }))
         : undefined;
-
-      const requiredFields = ["body", "feedbackId"];
-      validateRequiredFields(requiredFields, fields);
-
-      const { body, feedbackId } = fields;
 
       const { Feedback } = FeedbackReply.app.models;
       const feedback = await Feedback.findOne({ where: { id: feedbackId } });

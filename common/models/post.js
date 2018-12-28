@@ -265,20 +265,34 @@ module.exports = function(Post) {
         filePromise,
         fieldsPromise
       ]);
+
+      const requiredFields = ["title", "categoryId", "endDate"];
+      validateRequiredFields(requiredFields, fields);
+
+      const {
+        title,
+        description,
+        endDate,
+        categoryId,
+        fileTitle,
+        fileYear,
+        fileSummary,
+        fileBibliography
+      } = fields;
+
       // check if there are file ... if not make it undefined
       const files = filesInfo.file
         ? filesInfo.file.map(file => ({
             name: file.name,
             size: file.size,
             originalName: file.originalFilename,
-            fileType: file.type
+            fileType: file.type,
+            title: fileTitle,
+            year: fileYear,
+            summary: fileSummary,
+            bibliography: fileBibliography
           }))
         : undefined;
-
-      const requiredFields = ["title", "categoryId", "endDate"];
-      validateRequiredFields(requiredFields, fields);
-
-      const { title, description, endDate, categoryId } = fields;
 
       const post = await Post.create({
         title,

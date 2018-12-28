@@ -203,20 +203,32 @@ module.exports = function(Feedback) {
         filePromise,
         fieldsPromise
       ]);
+
+      const requiredFields = ["body", "postId"];
+      validateRequiredFields(requiredFields, fields);
+
+      const {
+        body,
+        postId,
+        fileTitle,
+        fileYear,
+        fileSummary,
+        fileBibliography
+      } = fields;
+
       // check if there are file ... if not make it undefined
       const files = filesInfo.file
         ? filesInfo.file.map(file => ({
             name: file.name,
             size: file.size,
             originalName: file.originalFilename,
-            fileType: file.type
+            fileType: file.type,
+            title: fileTitle,
+            year: fileYear,
+            summary: fileSummary,
+            bibliography: fileBibliography
           }))
         : undefined;
-
-      const requiredFields = ["body", "postId"];
-      validateRequiredFields(requiredFields, fields);
-
-      const { body, postId } = fields;
 
       const feedback = await Feedback.create({
         body,
