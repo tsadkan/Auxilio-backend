@@ -1,4 +1,3 @@
-const fs = require("fs");
 const formidable = require("formidable");
 const { differenceInDays } = require("date-fns");
 
@@ -25,19 +24,6 @@ module.exports = function(Post) {
   // update post
   Post.updateMyPost = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
-
-    const {
-      name: storageName,
-      root: storageRoot
-    } = Post.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw Error("Unknown Storage", 400);
 
     const { Container } = Post.app.models;
     const form = new formidable.IncomingForm();
@@ -229,19 +215,6 @@ module.exports = function(Post) {
 
   Post.createPost = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
-
-    const {
-      name: storageName,
-      root: storageRoot
-    } = Post.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw error("Unknown Storage", 400);
 
     const { Container } = Post.app.models;
     const form = new formidable.IncomingForm();

@@ -1,4 +1,3 @@
-const fs = require("fs");
 const formidable = require("formidable");
 const {
   error,
@@ -17,19 +16,6 @@ module.exports = function(Feedback) {
   // update feedback
   Feedback.updateMyFeedback = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
-
-    const {
-      name: storageName,
-      root: storageRoot
-    } = Feedback.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw Error("Unknown Storage", 400);
 
     const { Container } = Feedback.app.models;
     const form = new formidable.IncomingForm();
@@ -167,19 +153,6 @@ module.exports = function(Feedback) {
 
   Feedback.createFeedback = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
-
-    const {
-      name: storageName,
-      root: storageRoot
-    } = Feedback.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw Error("Unknown Storage", 400);
 
     const { Container } = Feedback.app.models;
     const form = new formidable.IncomingForm();
