@@ -454,22 +454,28 @@ module.exports = function(Post) {
    * Attach remaining days and progress on posts
    * @param {Array} posts
    */
-  const includePostProgress = posts =>
-    posts.map(post => {
+  const includePostProgress = posts => {
+    const now = new Date();
+    return posts.map(post => {
       const totalDays =
         post.endDate && post.startDate
           ? differenceInDays(post.endDate, post.startDate)
           : 0;
-      const remaining = post.endDate
-        ? differenceInDays(post.endDate, new Date())
+      const remainingDays = post.endDate
+        ? differenceInDays(post.endDate, now)
         : 0;
-      post.remainingDays = remaining || 0;
+      const passedDays = post.endDate
+        ? differenceInDays(now, post.startDate)
+        : 0;
+
+      post.remainingDays = remainingDays || 0;
       post.progress =
-        remaining && totalDays
-          ? Number.parseFloat((remaining / totalDays) * 100).toFixed(2) || 0
+        passedDays && totalDays
+          ? Number.parseFloat((passedDays / totalDays) * 100).toFixed(2) || 0
           : 0;
       return post;
     });
+  };
 
   /**
    * Attach up vote & down vote amount for posts
