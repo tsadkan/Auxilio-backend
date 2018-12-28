@@ -251,7 +251,7 @@ module.exports = function(FeedbackReply) {
         container: BUCKET
       });
 
-      const result = FeedbackReply.findOne({
+      const result = await FeedbackReply.findOne({
         where: { id: reply.id },
         include: [
           {
@@ -262,6 +262,7 @@ module.exports = function(FeedbackReply) {
           }
         ]
       });
+      result.isOwner = true;
       return result;
     } catch (err) {
       throw err;

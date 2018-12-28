@@ -308,7 +308,7 @@ module.exports = function(Post) {
         container: BUCKET
       });
 
-      const result = Post.findOne({
+      const result = await Post.findOne({
         where: { id: post.id },
         include: [
           {
@@ -319,6 +319,7 @@ module.exports = function(Post) {
           }
         ]
       });
+      result.isOwner = true;
       return result;
     } catch (err) {
       throw err;
