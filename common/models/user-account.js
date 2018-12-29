@@ -146,7 +146,7 @@ module.exports = function(UserAccount) {
     http: { verb: "patch", path: "/update-member" }
   });
 
-  UserAccount.appResetPassword = async email => {
+  UserAccount.appResetPassword = async (email, userInfo) => {
     const { Email, PasswordReset } = UserAccount.app.models;
 
     const sendEmail = async msg => {
@@ -163,6 +163,7 @@ module.exports = function(UserAccount) {
     });
 
     if (user) {
+      const { browserName, OSName } = userInfo;
       // generate unique token
       const tokgen = new TokenGenerator(256, TokenGenerator.BASE62);
       const resetToken = tokgen.generate();
@@ -175,7 +176,9 @@ module.exports = function(UserAccount) {
 
       const content = {
         fullName,
-        resetUrl
+        resetUrl,
+        OSName,
+        browserName
       };
 
       const renderer = loopback.template(
@@ -203,7 +206,10 @@ module.exports = function(UserAccount) {
 
   UserAccount.remoteMethod("appResetPassword", {
     description: "reset user password via email.",
-    accepts: [{ arg: "email", type: "string", required: true }],
+    accepts: [
+      { arg: "email", type: "string", required: true },
+      { arg: "userInfo", type: "object", required: true }
+    ],
     returns: {
       type: "object",
       root: true
