@@ -1,4 +1,3 @@
-const fs = require("fs");
 const formidable = require("formidable");
 const {
   error,
@@ -14,22 +13,58 @@ module.exports = function(Feedback) {
   });
   Feedback.validatesPresenceOf("postId", { message: "postId is required" });
 
+  /**
+   * @todo REFACTOR ME , THIS IS REALLY SHITTY
+   * Attach users voted status for a post
+   * @param {Array} feedbacks
+   */
+  const includeUserFeedbackVoteStatus = async (userId, feedback) => {
+    const { UserFeedbackVote } = Feedback.app.models;
+    // eslint-disable-next-line
+    const reaction = await UserFeedbackVote.findOne({
+      where: {
+        userId,
+        feedbackId: feedback.id
+      }
+    });
+    feedback.voted = (reaction && reaction.vote) || 0;
+    return feedback;
+  };
+
+  /**
+   * @todo REFACTOR ME , THIS IS REALLY SHITTY
+   * Attach up vote & down vote amount for feedbacks
+   * @param {Array} feedbacks
+   */
+  const includeFeedbackVotes = async feedback => {
+    const { UserFeedbackVote } = Feedback.app.models;
+    const feedbackVotes = await UserFeedbackVote.find({
+      where: { feedbackId: feedback.id }
+    });
+
+    if (!feedbackVotes || !feedbackVotes.length) {
+      feedback.upVote = 0;
+      feedback.downVote = 0;
+      return feedback;
+    }
+    feedback.upVote = 0;
+    feedback.downVote = 0;
+    for (const feedbackVote of feedbackVotes) {
+      if (feedbackVote.feedbackId.toString() === feedback.id.toString()) {
+        if (feedbackVote.vote === 1) {
+          feedback.upVote += 1;
+        }
+        if (feedbackVote.vote === -1) {
+          feedback.downVote += 1;
+        }
+      }
+    }
+    return feedback;
+  };
+
   // update feedback
   Feedback.updateMyFeedback = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
-
-    const {
-      name: storageName,
-      root: storageRoot
-    } = Feedback.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw Error("Unknown Storage", 400);
 
     const { Container } = Feedback.app.models;
     const form = new formidable.IncomingForm();
@@ -71,23 +106,37 @@ module.exports = function(Feedback) {
 
       const { id } = fields;
 
-      const feedback = await Feedback.findOne({
-        where: {
-          id
-        },
-        include: ["createdBy"]
-      });
+      const feedback = await Feedback.findOne({ where: { id } });
 
       if (!feedback) throw error("feedback doesn't exist.", 403);
 
+      const { userId } = accessToken;
       // check if the feedback is created by this user
-      if (accessToken.userId.toString() !== feedback.createdById.toString())
+      if (userId.toString() !== feedback.createdById.toString())
         throw error("Cannot update others feedback.", 403);
 
       delete fields.id;
       await feedback.patchAttributes({ ...fields, files });
 
-      return feedback;
+      let result = await Feedback.findOne({
+        where: { id },
+        include: [
+          {
+            relation: "replies"
+          },
+          {
+            relation: "createdBy",
+            scope: {
+              fields: { fullName: true, email: true, profilePicture: true }
+            }
+          }
+        ]
+      });
+      // @TODO REFACTOR ME
+      result = await includeUserFeedbackVoteStatus(userId, result);
+      result = await includeFeedbackVotes(result);
+      result.isOwner = true;
+      return result;
     } catch (err) {
       throw err;
     }
@@ -168,19 +217,6 @@ module.exports = function(Feedback) {
   Feedback.createFeedback = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
-    const {
-      name: storageName,
-      root: storageRoot
-    } = Feedback.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw Error("Unknown Storage", 400);
-
     const { Container } = Feedback.app.models;
     const form = new formidable.IncomingForm();
 
@@ -212,10 +248,9 @@ module.exports = function(Feedback) {
       let year;
       let summary;
       let bibliography;
-      let fileTitle;
-      if (fileMeta) {
-        ({ year, summary, bibliography } = JSON.parse(fileMeta));
-        fileTitle = JSON.parse(fileMeta).title;
+      let title;
+      if (fileMeta && JSON.parse(fileMeta)) {
+        ({ title, year, summary, bibliography } = JSON.parse(fileMeta));
       }
 
       // check if there are file ... if not make it undefined
@@ -228,7 +263,7 @@ module.exports = function(Feedback) {
               fileType: file.type
             },
             meta: {
-              title: fileTitle,
+              title,
               year,
               summary,
               bibliography

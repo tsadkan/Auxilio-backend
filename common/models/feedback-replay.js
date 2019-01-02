@@ -1,4 +1,3 @@
-const fs = require("fs");
 const formidable = require("formidable");
 const {
   error,
@@ -22,19 +21,6 @@ module.exports = function(FeedbackReply) {
   // update feedback reply
   FeedbackReply.updateMyReply = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
-
-    const {
-      name: storageName,
-      root: storageRoot
-    } = FeedbackReply.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw Error("Unknown Storage", 400);
 
     const { Container } = FeedbackReply.app.models;
     const form = new formidable.IncomingForm();
@@ -91,7 +77,7 @@ module.exports = function(FeedbackReply) {
       delete fields.id;
       delete fields.replyId;
       await reply.patchAttributes({ ...fields, files });
-
+      reply.isOwner = true;
       return reply;
     } catch (err) {
       throw err;
@@ -168,19 +154,6 @@ module.exports = function(FeedbackReply) {
   FeedbackReply.createReply = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
-    const {
-      name: storageName,
-      root: storageRoot
-    } = FeedbackReply.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw Error("Unknown Storage", 400);
-
     const { Container } = FeedbackReply.app.models;
     const form = new formidable.IncomingForm();
 
@@ -212,10 +185,9 @@ module.exports = function(FeedbackReply) {
       let year;
       let summary;
       let bibliography;
-      let fileTitle;
-      if (fileMeta) {
-        ({ year, summary, bibliography } = JSON.parse(fileMeta));
-        fileTitle = JSON.parse(fileMeta).title;
+      let title;
+      if (fileMeta && JSON.parse(fileMeta)) {
+        ({ year, title, summary, bibliography } = JSON.parse(fileMeta));
       }
 
       // check if there are file ... if not make it undefined
@@ -228,7 +200,7 @@ module.exports = function(FeedbackReply) {
               fileType: file.type
             },
             meta: {
-              title: fileTitle,
+              title,
               year,
               summary,
               bibliography

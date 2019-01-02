@@ -1,4 +1,3 @@
-const fs = require("fs");
 const formidable = require("formidable");
 const { differenceInDays } = require("date-fns");
 
@@ -25,19 +24,6 @@ module.exports = function(Post) {
   // update post
   Post.updateMyPost = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
-
-    const {
-      name: storageName,
-      root: storageRoot
-    } = Post.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw Error("Unknown Storage", 400);
 
     const { Container } = Post.app.models;
     const form = new formidable.IncomingForm();
@@ -95,14 +81,16 @@ module.exports = function(Post) {
 
       if (!post) throw error("post doesn't exist.", 403);
 
+      const { userId } = accessToken;
       // check if the post is created by this user
-      if (accessToken.userId.toString() !== post.createdBy().id.toString())
+      if (userId.toString() !== post.createdBy().id.toString())
         throw error("Cannot update others post.", 403);
 
       delete fields.id;
       delete fields.postId;
       await post.patchAttributes({ ...fields, files });
 
+      post.isOwner = true;
       return post;
     } catch (err) {
       throw err;
@@ -149,8 +137,6 @@ module.exports = function(Post) {
 
     if (!post) throw error("post doesn't exist.", 403);
 
-    // console.log(accessToken.userId.toString());
-    // console.log(post.createdById.toString());
     // check if the post is created by this user
     if (accessToken.userId.toString() !== post.createdById.toString())
       throw error("Cannot delete others post.", 403);
@@ -230,19 +216,6 @@ module.exports = function(Post) {
   Post.createPost = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
 
-    const {
-      name: storageName,
-      root: storageRoot
-    } = Post.app.dataSources.storage.settings;
-
-    if (storageName === "storage") {
-      const path = `${storageRoot}/${BUCKET}/`;
-
-      if (!fs.existsSync(path)) {
-        fs.mkdirSync(path);
-      }
-    } else throw error("Unknown Storage", 400);
-
     const { Container } = Post.app.models;
     const form = new formidable.IncomingForm();
 
@@ -275,9 +248,10 @@ module.exports = function(Post) {
       let summary;
       let bibliography;
       let fileTitle;
-      if (fileMeta) {
-        ({ year, summary, bibliography } = JSON.parse(fileMeta));
-        fileTitle = JSON.parse(fileMeta).title;
+      if (fileMeta && JSON.parse(fileMeta)) {
+        const parsed = JSON.parse(fileMeta);
+        ({ year, summary, bibliography } = parsed);
+        fileTitle = parsed.title;
       }
 
       // check if there are file ... if not make it undefined
@@ -376,7 +350,6 @@ module.exports = function(Post) {
           feedbackId: feedback.id
         }
       });
-      Post.app.logger.info(reaction);
       feedback.voted = (reaction && reaction.vote) || 0;
     }
     return feedbacks;
@@ -451,22 +424,28 @@ module.exports = function(Post) {
    * Attach remaining days and progress on posts
    * @param {Array} posts
    */
-  const includePostProgress = posts =>
-    posts.map(post => {
+  const includePostProgress = posts => {
+    const now = new Date();
+    return posts.map(post => {
       const totalDays =
         post.endDate && post.startDate
           ? differenceInDays(post.endDate, post.startDate)
           : 0;
-      const remaining = post.endDate
-        ? differenceInDays(post.endDate, new Date())
+      const remainingDays = post.endDate
+        ? differenceInDays(post.endDate, now)
         : 0;
-      post.remainingDays = remaining || 0;
+      const passedDays = post.endDate
+        ? differenceInDays(now, post.startDate)
+        : 0;
+
+      post.remainingDays = remainingDays || 0;
       post.progress =
-        remaining && totalDays
-          ? Number.parseFloat((remaining / totalDays) * 100).toFixed(2) || 0
+        passedDays && totalDays
+          ? Number.parseFloat((passedDays / totalDays) * 100).toFixed(2) || 0
           : 0;
       return post;
     });
+  };
 
   /**
    * Attach up vote & down vote amount for posts

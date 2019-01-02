@@ -8,32 +8,63 @@ module.exports = function(Search) {
   Search.testSearch = async q => {
     if (!q) return [];
     const { Post, Feedback, FeedbackReply } = Search.app.models;
+
     const posts = (await Post.find({
       where: {
         title: { like: `.*${q}.*`, options: "i" }
-      }
-    })).map(feedback => {
-      feedback.type = "POST";
-      return feedback;
+      },
+      include: [
+        {
+          relation: "createdBy",
+          scope: {
+            fields: { fullName: true, email: true, profilePicture: true }
+          }
+        }
+      ]
+    })).map(post => {
+      post.type = "POST";
+      post.postId = post.id;
+      post.title = post.title;
+      return post;
     });
+
     const feedbacks = (await Feedback.find({
       where: {
         body: { like: `.*${q}.*`, options: "i" }
-      }
+      },
+      include: [
+        {
+          relation: "createdBy",
+          scope: {
+            fields: { fullName: true, email: true, profilePicture: true }
+          }
+        }
+      ]
     })).map(feedback => {
       feedback.type = "FEEDBACK";
-      return feedback;
-    });
-    const replies = await FeedbackReply.find({
-      where: {
-        body: { like: `.*${q}.*`, options: "i" }
-      }
-    }).map(feedback => {
-      feedback.type = "REPLY";
+      feedback.title = feedback.body;
       return feedback;
     });
 
-    const result = [...posts, feedbacks, replies];
+    const replies = await FeedbackReply.find({
+      where: {
+        body: { like: `.*${q}.*`, options: "i" }
+      },
+      include: [
+        {
+          relation: "createdBy",
+          scope: {
+            fields: { fullName: true, email: true, profilePicture: true }
+          }
+        }
+      ]
+    }).map(reply => {
+      reply.type = "REPLY";
+      reply.title = reply.body;
+      return reply;
+    });
+
+    const result = [...posts, ...feedbacks, ...replies];
     return result;
   };
   /**

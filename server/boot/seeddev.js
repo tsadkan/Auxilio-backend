@@ -90,14 +90,13 @@ module.exports = async app => {
 
     const replies = [];
     for (let i = 0; i < SEED_REPLAYS_AMOUNT; i += 1) {
+      const feedback =
+        feedbacksCreated[Math.floor(Math.random() * feedbacksCreated.length)];
       replies.push({
         body: casual.text,
         createdById: accounts[Math.floor(Math.random() * accounts.length)].id,
-        postId:
-          postsCreated[Math.floor(Math.random() * postsCreated.length)].id,
-        feedbackId:
-          feedbacksCreated[Math.floor(Math.random() * feedbacksCreated.length)]
-            .id
+        feedbackId: feedback.id,
+        postId: feedback.postId
       });
     }
     await FeedbackReply.create(replies);
