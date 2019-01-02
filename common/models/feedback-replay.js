@@ -70,8 +70,10 @@ module.exports = function(FeedbackReply) {
 
       if (!reply) throw error("reply doesn't exist.", 403);
 
+      const { userId } = accessToken;
+      const { isAdmin } = accessToken.userInfo;
       // check if the reply is created by this user
-      if (accessToken.userId.toString() !== reply.createdById.toString())
+      if (userId.toString() !== reply.createdById.toString() && !isAdmin)
         throw error("Cannot update others reply.", 403);
 
       delete fields.id;
@@ -122,8 +124,10 @@ module.exports = function(FeedbackReply) {
 
     if (!reply) throw error("feedback reply doesn't exist.", 403);
 
+    const { userId } = accessToken;
+    const { isAdmin } = accessToken.userInfo;
     // check if the reply is created by this user
-    if (accessToken.userId.toString() !== reply.createdById.toString())
+    if (userId.toString() !== reply.createdById.toString() && !isAdmin)
       throw error("Cannot delete others reply.", 403);
 
     await FeedbackReply.destroyById(replyId);

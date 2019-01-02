@@ -82,8 +82,9 @@ module.exports = function(Post) {
       if (!post) throw error("post doesn't exist.", 403);
 
       const { userId } = accessToken;
+      const { isAdmin } = accessToken.userInfo;
       // check if the post is created by this user
-      if (userId.toString() !== post.createdBy().id.toString())
+      if (userId.toString() !== post.createdBy().id.toString() && !isAdmin)
         throw error("Cannot update others post.", 403);
 
       delete fields.id;
@@ -137,8 +138,11 @@ module.exports = function(Post) {
 
     if (!post) throw error("post doesn't exist.", 403);
 
+    const { userId } = accessToken;
+    const { isAdmin } = accessToken.userInfo;
+
     // check if the post is created by this user
-    if (accessToken.userId.toString() !== post.createdById.toString())
+    if (userId.toString() !== post.createdBy().id.toString() && !isAdmin)
       throw error("Cannot delete others post.", 403);
 
     const feedbacks = await Feedback.find({
