@@ -420,4 +420,89 @@ module.exports = function(UserAccount) {
     },
     http: { verb: "post", path: "/update-password" }
   });
+
+  /**
+   * Return user post, feedback and replies including profile information
+   */
+  UserAccount.myProfile = async (accessToken, limit, skip, order) => {
+    const { Post, Feedback, FeedbackReply } = UserAccount.app.models;
+
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    limit = limit || 0;
+    skip = skip || 0;
+    order = order || "createdAt DESC";
+
+    const { userId } = accessToken;
+
+    const profile = await UserAccount.findById(userId);
+
+    const postCount = await Post.count({
+      createdById: userId
+    });
+    const feedbackCount = await Feedback.count({
+      createdById: userId
+    });
+    const replyCount = await FeedbackReply.count({
+      createdById: userId
+    });
+    const userPosts = await Post.find({
+      where: {
+        createdById: userId
+      },
+      limit,
+      skip,
+      order
+    });
+    const userFeedbacks = await Feedback.find({
+      where: {
+        createdById: userId
+      },
+      limit,
+      skip,
+      order
+    });
+    const userReplies = await FeedbackReply.find({
+      where: {
+        createdById: userId
+      },
+      limit,
+      skip,
+      order
+    });
+
+    const posts = { count: postCount, rows: userPosts };
+    const feedbacks = { count: feedbackCount, rows: userFeedbacks };
+    const replies = { count: replyCount, rows: userReplies };
+
+    return {
+      profile,
+      posts,
+      feedbacks,
+      replies
+    };
+  };
+  UserAccount.remoteMethod("myProfile", {
+    description:
+      "return user post, feedback and replies including profile information",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "limit", type: "number", required: false },
+      { arg: "skip", type: "number", required: false },
+      { arg: "order", type: "string", required: false }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "get", path: "/my-profile" }
+  });
 };

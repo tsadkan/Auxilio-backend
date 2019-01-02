@@ -154,6 +154,13 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "updatePassword"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "myProfile"
     }
   ],
   "methods": {}
