@@ -246,33 +246,45 @@ module.exports = function(Feedback) {
       const requiredFields = ["body", "postId"];
       validateRequiredFields(requiredFields, fields);
 
-      const { body, postId, fileMeta } = fields;
+      const { body, postId } = fields;
 
       let year;
       let summary;
       let bibliography;
       let title;
-      if (fileMeta && JSON.parse(fileMeta)) {
-        ({ title, year, summary, bibliography } = JSON.parse(fileMeta));
-      }
 
-      // check if there are file ... if not make it undefined
-      const files = filesInfo.file
-        ? filesInfo.file.map(file => ({
-            file: {
-              name: file.name,
-              size: file.size,
-              originalName: file.originalFilename,
-              fileType: file.type
-            },
-            meta: {
-              title,
-              year,
-              summary,
-              bibliography
-            }
-          }))
-        : undefined;
+      const files = [];
+      const filesMeta = JSON.parse(fields.files);
+
+      const counter = 0;
+
+      const keys = Object.keys(filesInfo);
+      for (const key of keys) {
+        const fileObject = filesInfo[key][0];
+
+        const file = {
+          name: fileObject.name,
+          size: fileObject.size,
+          fileType: fileObject.type,
+          originalName: fileObject.originalFilename
+        };
+
+        const fileMeta = filesMeta[counter].meta;
+        if (fileMeta) {
+          ({ title, year, summary, bibliography } = fileMeta);
+        }
+        const meta = {
+          title,
+          year,
+          summary,
+          bibliography
+        };
+
+        files.push({
+          file,
+          meta
+        });
+      }
 
       const feedback = await Feedback.create({
         body,
