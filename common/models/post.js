@@ -289,7 +289,7 @@ module.exports = function(Post) {
       const post = await Post.create({
         title,
         description,
-        endDate,
+        endDate: new Date(endDate),
         files,
         createdById: accessToken.userId,
         categoryId,
