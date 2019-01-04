@@ -35,7 +35,6 @@
     "rate-limiter-flexible": "^0.20.2",
     "serve-favicon": "^2.0.1",
     "strong-error-handler": "^3.0.0",
-    "ua-parser-js": "^0.7.19",
     "useragent-parser-js": "^1.0.3",
     "uuid-token-generator": "^1.0.0",
     "winston": "^3.1.0"
