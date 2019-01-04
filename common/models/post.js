@@ -246,35 +246,45 @@ module.exports = function(Post) {
       const requiredFields = ["title", "categoryId", "endDate"];
       validateRequiredFields(requiredFields, fields);
 
-      const { title, description, endDate, categoryId, fileMeta } = fields;
+      const { title, description, endDate, categoryId } = fields;
 
       let year;
       let summary;
       let bibliography;
       let fileTitle;
-      if (fileMeta && JSON.parse(fileMeta)) {
-        const parsed = JSON.parse(fileMeta);
-        ({ year, summary, bibliography } = parsed);
-        fileTitle = parsed.title;
-      }
 
-      // check if there are file ... if not make it undefined
-      const files = filesInfo.file
-        ? filesInfo.file.map(file => ({
-            file: {
-              name: file.name,
-              size: file.size,
-              originalName: file.originalFilename,
-              fileType: file.type
-            },
-            meta: {
-              title: fileTitle,
-              year,
-              summary,
-              bibliography
-            }
-          }))
-        : undefined;
+      const files = [];
+      const filesMeta = JSON.parse(fields.files);
+
+      const counter = 0;
+
+      const keys = Object.keys(filesInfo);
+      for (const key of keys) {
+        const fileObject = filesInfo[key][0];
+
+        const file = {
+          name: fileObject.name,
+          size: fileObject.size,
+          fileType: fileObject.type,
+          originalName: fileObject.originalFilename
+        };
+
+        const fileMeta = filesMeta[counter].meta;
+        if (fileMeta) {
+          ({ fileTitle, year, summary, bibliography } = fileMeta);
+        }
+        const meta = {
+          fileTitle,
+          year,
+          summary,
+          bibliography
+        };
+
+        files.push({
+          file,
+          meta
+        });
+      }
 
       const post = await Post.create({
         title,
