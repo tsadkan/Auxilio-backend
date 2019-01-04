@@ -3,6 +3,7 @@ const loopback = require("loopback");
 const path = require("path");
 const differenceInHours = require("date-fns/difference_in_hours");
 const bcrypt = require("bcrypt-nodejs");
+const parser = require("useragent-parser-js");
 
 const {
   error,
@@ -209,7 +210,20 @@ module.exports = function(UserAccount) {
     description: "reset user password via email.",
     accepts: [
       { arg: "email", type: "string", required: true },
-      { arg: "userInfo", type: "object", required: true }
+      {
+        arg: "userInfo",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const userAgent = req && req.headers["user-agent"];
+          const result = parser.parse(userAgent);
+          const userInfo = {
+            browserName: result.browser,
+            OSName: result.os
+          };
+          return userInfo.browserName && userInfo.OSName ? userInfo : null;
+        }
+      }
     ],
     returns: {
       type: "object",
