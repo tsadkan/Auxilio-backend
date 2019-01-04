@@ -19,6 +19,7 @@ module.exports = function(UserAccount) {
     if (!userInfo) {
       throw error();
     }
+
     ctx.result = {
       token: result.id,
       title: userInfo.title,
@@ -330,7 +331,9 @@ module.exports = function(UserAccount) {
       "profilePicture",
       "fullName",
       "email",
-      "phoneNumber"
+      "phoneNumber",
+      "oldPassword",
+      "newPasssword"
     ];
 
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
@@ -340,9 +343,19 @@ module.exports = function(UserAccount) {
     const account = await UserAccount.findById(accessToken.userId);
     delete body.id;
 
-    await account.patchAttributes({ ...body });
+    let result = {};
+    if (body.newPassword && body.oldPassword) {
+      result = await UserAccount.updatePassword(
+        body.oldPassword,
+        body.newPassword,
+        accessToken
+      );
+      delete body.oldPassword;
+      delete body.newPassword;
+    }
 
-    return { status: true };
+    await account.patchAttributes({ ...body });
+    return result.tokenId ? result : { status: true };
   };
   UserAccount.remoteMethod("updateMyProfile", {
     description: "Update users's profile.",
@@ -386,7 +399,7 @@ module.exports = function(UserAccount) {
     });
 
     // if old password is not correct throw error
-    if (!isMatch) throw error("Incorrect Old Password", 401);
+    if (!isMatch) throw error("Incorrect Old Password", 403);
 
     await user.patchAttributes({
       password: newPassword
@@ -503,6 +516,6 @@ module.exports = function(UserAccount) {
       type: "object",
       root: true
     },
-    http: { verb: "get", path: "/my-profile" }
+    http: { verb: "post", path: "/my-profile" }
   });
 };
