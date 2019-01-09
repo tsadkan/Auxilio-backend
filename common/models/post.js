@@ -514,7 +514,7 @@ module.exports = function(Post) {
       where: {
         ...filter
       },
-      include: ["feedbacks", "category"],
+      include: ["feedbacks", "category", "createdBy"],
       limit,
       skip
     });
