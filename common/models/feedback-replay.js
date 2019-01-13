@@ -155,17 +155,19 @@ module.exports = function(FeedbackReply) {
     http: { verb: "delete", path: "/delete-my-reply" }
   });
 
+  // eslint-disable-next-line no-unused-vars
   FeedbackReply.createReply = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
-    const { Container } = FeedbackReply.app.models;
+    // const { Container } = FeedbackReply.app.models;
+    const { UserPostStatus } = FeedbackReply.app.models;
     const form = new formidable.IncomingForm();
 
-    const filePromise = new Promise(resolve => {
-      const filesInfo = Container.customUpload(req, res, BUCKET);
+    // const filePromise = new Promise(resolve => {
+    //   const filesInfo = Container.customUpload(req, res, BUCKET);
 
-      return resolve(filesInfo);
-    });
+    //   return resolve(filesInfo);
+    // });
 
     const fieldsPromise = new Promise((resolve, reject) => {
       form.parse(req, (err, fields) => {
@@ -176,53 +178,50 @@ module.exports = function(FeedbackReply) {
     });
 
     try {
-      const [filesInfo, fields] = await Promise.all([
-        filePromise,
-        fieldsPromise
-      ]);
+      const [fields] = await Promise.all([fieldsPromise]);
 
       const requiredFields = ["body", "feedbackId"];
       validateRequiredFields(requiredFields, fields);
 
       const { body, feedbackId } = fields;
 
-      let year;
-      let summary;
-      let bibliography;
-      let title;
+      // let year;
+      // let summary;
+      // let bibliography;
+      // let title;
 
       const files = [];
-      const filesMeta = JSON.parse(fields.files);
+      // const filesMeta = JSON.parse(fields.files);
 
-      const counter = 0;
+      // const counter = 0;
 
-      const keys = Object.keys(filesInfo);
-      for (const key of keys) {
-        const fileObject = filesInfo[key][0];
+      // const keys = Object.keys(filesInfo);
+      // for (const key of keys) {
+      //   const fileObject = filesInfo[key][0];
 
-        const file = {
-          name: fileObject.name,
-          size: fileObject.size,
-          fileType: fileObject.type,
-          originalName: fileObject.originalFilename
-        };
+      //   const file = {
+      //     name: fileObject.name,
+      //     size: fileObject.size,
+      //     fileType: fileObject.type,
+      //     originalName: fileObject.originalFilename
+      //   };
 
-        const fileMeta = filesMeta[counter].meta;
-        if (fileMeta) {
-          ({ title, year, summary, bibliography } = fileMeta);
-        }
-        const meta = {
-          title,
-          year,
-          summary,
-          bibliography
-        };
+      // const fileMeta = filesMeta[counter].meta;
+      // if (fileMeta) {
+      // ({ title, year, summary, bibliography } = fileMeta);
+      // }
+      // const meta = {
+      // title,
+      // year,
+      // summary,
+      // bibliography
+      // };
 
-        files.push({
-          file,
-          meta
-        });
-      }
+      // files.push({
+      // file,
+      // meta
+      // });
+      // }
 
       const { Feedback } = FeedbackReply.app.models;
       const feedback = await Feedback.findOne({ where: { id: feedbackId } });
@@ -251,6 +250,14 @@ module.exports = function(FeedbackReply) {
         ]
       });
       result.isOwner = true;
+
+      const { postId } = feedback;
+      // update/insert user seen status
+      const lastSeen = new Date();
+      await UserPostStatus.upsertWithWhere(
+        { postId, userAccountId: accessToken.userId },
+        { postId, userAccountId: accessToken.userId, lastSeen }
+      );
       return result;
     } catch (err) {
       throw err;

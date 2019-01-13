@@ -220,7 +220,7 @@ module.exports = function(Feedback) {
   Feedback.createFeedback = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
-    const { Container } = Feedback.app.models;
+    const { Container, UserPostStatus } = Feedback.app.models;
     const form = new formidable.IncomingForm();
 
     const filePromise = new Promise(resolve => {
@@ -306,6 +306,13 @@ module.exports = function(Feedback) {
         ]
       });
       result.isOwner = true;
+
+      // update/insert user seen status
+      const lastSeen = new Date();
+      await UserPostStatus.upsertWithWhere(
+        { postId, userAccountId: accessToken.userId },
+        { postId, userAccountId: accessToken.userId, lastSeen }
+      );
       return result;
     } catch (err) {
       throw err;

@@ -246,7 +246,7 @@ module.exports = function(Post) {
       const requiredFields = ["title", "categoryId", "endDate"];
       validateRequiredFields(requiredFields, fields);
 
-      const { title, description, endDate, categoryId } = fields;
+      const { title, description, endDate, categoryId, mainTopicId } = fields;
 
       let year;
       let summary;
@@ -292,6 +292,7 @@ module.exports = function(Post) {
         endDate: new Date(endDate),
         files,
         createdById: accessToken.userId,
+        mainTopicId,
         categoryId,
         container: BUCKET
       });
@@ -543,12 +544,13 @@ module.exports = function(Post) {
         post.newFeedbacks = newFeedbacks;
         // attach number of feedbacks post object
         post.numberOfFeedbacks = post.feedbacks().length;
+        post.lastSeen = lastSeenTimeStamp;
         // @todo delete feedbacks
         return post;
       })
     );
 
-    newPosts = sort(newPosts, "newFeedbacks");
+    newPosts = sort(newPosts, "lastSeen DESC");
 
     // include post ownership detail
     newPosts = newPosts.map(post => {

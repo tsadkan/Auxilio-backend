@@ -53,6 +53,11 @@
     "category": {
       "type": "belongsTo",
       "model": "PostCategory"
+    },
+    "mainTopic": {
+      "type": "belongsTo",
+      "model": "MainTopic",
+      "foreignKey": ""
     }
   },
   "acls": [
