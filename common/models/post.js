@@ -515,9 +515,7 @@ module.exports = function(Post) {
       where: {
         ...filter
       },
-      include: ["feedbacks", "category", "createdBy"],
-      limit,
-      skip
+      include: ["feedbacks", "category", "createdBy"]
     });
 
     // prepare new posts to return as a list of posts including the number of new feedbacks
@@ -550,7 +548,7 @@ module.exports = function(Post) {
       })
     );
 
-    newPosts = sort(newPosts, "lastSeen DESC");
+    newPosts = sort(newPosts, "lastSeen");
 
     // include post ownership detail
     newPosts = newPosts.map(post => {
@@ -560,6 +558,7 @@ module.exports = function(Post) {
 
     let result = includePostProgress(newPosts);
     result = await includePostVotes(result);
+    result = limit !== 0 ? result.slice(0, limit) : result;
     return { count, rows: result };
   };
 
