@@ -1,0 +1,35 @@
+{
+  "name": "MainTopic",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "createdBy": {
+      "type": "belongsTo",
+      "model": "UserAccount"
+    },
+    "posts": {
+      "type": "hasMany",
+      "model": "Post",
+      "foreignKey": ""
+    },
+    "category": {
+      "type": "belongsTo",
+      "model": "PostCategory"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

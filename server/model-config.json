@@ -222,5 +222,9 @@
         }
       }
     }
+  },
+  "MainTopic": {
+    "dataSource": "mongo",
+    "public": true
   }
 }
