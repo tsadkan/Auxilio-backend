@@ -220,7 +220,7 @@ module.exports = function(Post) {
   Post.createPost = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
 
-    const { Container } = Post.app.models;
+    const { Container, UserPostStatus } = Post.app.models;
     const form = new formidable.IncomingForm();
 
     const filePromise = new Promise(resolve => {
@@ -309,6 +309,14 @@ module.exports = function(Post) {
         ]
       });
       result.isOwner = true;
+
+      // update/insert user seen status
+      const lastSeen = new Date();
+      await UserPostStatus.upsertWithWhere(
+        { postId: post.id, userAccountId: accessToken.userId },
+        { postId: post.id, userAccountId: accessToken.userId, lastSeen }
+      );
+
       return result;
     } catch (err) {
       throw err;
