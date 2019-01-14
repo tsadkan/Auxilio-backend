@@ -23,6 +23,7 @@ module.exports = function(UserAccount) {
 
     ctx.result = {
       token: result.id,
+      id: userInfo.id,
       title: userInfo.title,
       profilePicture: userInfo.profilePicture,
       fullName: userInfo.fullName,
@@ -451,45 +452,28 @@ module.exports = function(UserAccount) {
   /**
    * Return user post, feedback and replies including profile information
    */
-  UserAccount.myProfile = async (accessToken, limit, skip, order) => {
-    const { Post, Feedback, FeedbackReply } = UserAccount.app.models;
+  UserAccount.myPosts = async (
+    accessToken,
+    userAccountId,
+    limit,
+    skip,
+    order
+  ) => {
+    const { Post } = UserAccount.app.models;
 
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const userId = userAccountId || accessToken.userId;
 
     limit = limit || 0;
     skip = skip || 0;
     order = order || "createdAt DESC";
 
-    const { userId } = accessToken;
-
-    const profile = await UserAccount.findById(userId);
-
     const postCount = await Post.count({
       createdById: userId
     });
-    const feedbackCount = await Feedback.count({
-      createdById: userId
-    });
-    const replyCount = await FeedbackReply.count({
-      createdById: userId
-    });
+
     const userPosts = await Post.find({
-      where: {
-        createdById: userId
-      },
-      limit,
-      skip,
-      order
-    });
-    const userFeedbacks = await Feedback.find({
-      where: {
-        createdById: userId
-      },
-      limit,
-      skip,
-      order
-    });
-    const userReplies = await FeedbackReply.find({
       where: {
         createdById: userId
       },
@@ -499,19 +483,11 @@ module.exports = function(UserAccount) {
     });
 
     const posts = { count: postCount, rows: userPosts };
-    const feedbacks = { count: feedbackCount, rows: userFeedbacks };
-    const replies = { count: replyCount, rows: userReplies };
 
-    return {
-      profile,
-      posts,
-      feedbacks,
-      replies
-    };
+    return posts;
   };
-  UserAccount.remoteMethod("myProfile", {
-    description:
-      "return user post, feedback and replies including profile information",
+  UserAccount.remoteMethod("myPosts", {
+    description: "return user posts with vote",
     accepts: [
       {
         arg: "accessToken",
@@ -522,6 +498,7 @@ module.exports = function(UserAccount) {
           return accessToken ? req.accessToken : null;
         }
       },
+      { arg: "userAccountId", type: "string", required: false },
       { arg: "limit", type: "number", required: false },
       { arg: "skip", type: "number", required: false },
       { arg: "order", type: "string", required: false }
@@ -530,6 +507,154 @@ module.exports = function(UserAccount) {
       type: "object",
       root: true
     },
-    http: { verb: "post", path: "/my-profile" }
+    http: { verb: "post", path: "/my-posts" }
+  });
+
+  /**
+   * Return user post, feedback and replies including profile information
+   */
+  UserAccount.myPosts = async (
+    accessToken,
+    userAccountId,
+    limit,
+    skip,
+    order
+  ) => {
+    const { FeedbackReply } = UserAccount.app.models;
+
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const userId = userAccountId || accessToken.userId;
+
+    limit = limit || 0;
+    skip = skip || 0;
+    order = order || "createdAt DESC";
+
+    const replyCount = await FeedbackReply.count({
+      createdById: userId
+    });
+
+    const userReplies = await FeedbackReply.find({
+      where: {
+        createdById: userId
+      },
+      limit,
+      skip,
+      order
+    });
+
+    const replies = { count: replyCount, rows: userReplies };
+
+    return replies;
+  };
+  UserAccount.remoteMethod("myReplies", {
+    description: "return user Replies",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "userAccountId", type: "string", required: false },
+      { arg: "limit", type: "number", required: false },
+      { arg: "skip", type: "number", required: false },
+      { arg: "order", type: "string", required: false }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/my-replies" }
+  });
+
+  UserAccount.myFeedbacks = async (
+    accessToken,
+    userAccountId,
+    limit,
+    skip,
+    order
+  ) => {
+    const { Feedback } = UserAccount.app.models;
+
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const userId = userAccountId || accessToken.userId;
+
+    limit = limit || 0;
+    skip = skip || 0;
+    order = order || "createdAt DESC";
+
+    const feedbackCount = await Feedback.count({
+      createdById: userId
+    });
+
+    const userFeedbacks = await Feedback.find({
+      where: {
+        createdById: userId
+      },
+      limit,
+      skip,
+      order
+    });
+
+    const feedbacks = { count: feedbackCount, rows: userFeedbacks };
+
+    return feedbacks;
+  };
+  UserAccount.remoteMethod("myFeedbacks", {
+    description: "return user feedbacks with vote",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "userAccountId", type: "string", required: false },
+      { arg: "limit", type: "number", required: false },
+      { arg: "skip", type: "number", required: false },
+      { arg: "order", type: "string", required: false }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/my-feedbacks" }
+  });
+
+  UserAccount.getUserProfile = async (accessToken, userAccountId) => {
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const userId = userAccountId || accessToken.userId;
+
+    const user = await UserAccount.findById(userId);
+    return user;
+  };
+  UserAccount.remoteMethod("getUserProfile", {
+    description: "return user",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "userAccountId", type: "string", required: false }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/get-user-profile" }
   });
 };
