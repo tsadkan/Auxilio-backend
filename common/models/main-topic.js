@@ -106,7 +106,7 @@ module.exports = function(MainTopic) {
         }
       },
       { arg: "title", type: "string", required: true },
-      { arg: "description", type: "string", required: true }
+      { arg: "description", type: "string" }
     ],
     returns: { type: "object", root: true },
     http: { path: "/create-topic", verb: "post" }
