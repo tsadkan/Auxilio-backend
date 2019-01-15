@@ -513,7 +513,7 @@ module.exports = function(UserAccount) {
   /**
    * Return user post, feedback and replies including profile information
    */
-  UserAccount.myPosts = async (
+  UserAccount.myReplies = async (
     accessToken,
     userAccountId,
     limit,
