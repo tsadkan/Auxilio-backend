@@ -20,8 +20,7 @@
       "type": "date"
     },
     "endDate": {
-      "type": "date",
-      "required": true
+      "type": "date"
     },
     "description": {
       "type": "string"
