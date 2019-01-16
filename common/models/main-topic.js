@@ -13,7 +13,7 @@ module.exports = function(MainTopic) {
 
     const count = await MainTopic.count({ ...filter });
 
-    let mainTopics = await MainTopic.find({
+    const mainTopics = await MainTopic.find({
       where: {
         ...filter
       },

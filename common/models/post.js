@@ -570,6 +570,7 @@ module.exports = function(Post) {
     result = await includePostVotes(result);
     result = sort(result, "aggregateVote");
 
+    result = await includeUserPostVoteStatus(userId, result);
     result = limit !== 0 ? result.slice(0, limit) : result;
     return { count, rows: result };
   };
