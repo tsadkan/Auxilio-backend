@@ -485,6 +485,7 @@ module.exports = function(Post) {
       return posts.map(post => {
         post.upVote = 0;
         post.downVote = 0;
+        post.aggregateVote = post.upVote - post.downVote;
         return post;
       });
     }
@@ -501,6 +502,7 @@ module.exports = function(Post) {
           }
         }
       }
+      post.aggregateVote = post.upVote - post.downVote;
       return post;
     });
   };
@@ -566,6 +568,8 @@ module.exports = function(Post) {
 
     let result = includePostProgress(newPosts);
     result = await includePostVotes(result);
+    result = sort(result, "aggregateVote");
+
     result = limit !== 0 ? result.slice(0, limit) : result;
     return { count, rows: result };
   };
