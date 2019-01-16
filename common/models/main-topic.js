@@ -1,4 +1,4 @@
-const { error } = require("../util");
+const { error, sort } = require("../util");
 
 module.exports = function(MainTopic) {
   MainTopic.list = async (limit, skip, filter, accessToken) => {
@@ -13,7 +13,7 @@ module.exports = function(MainTopic) {
 
     const count = await MainTopic.count({ ...filter });
 
-    const mainTopics = await MainTopic.find({
+    let mainTopics = await MainTopic.find({
       where: {
         ...filter
       },
@@ -25,7 +25,7 @@ module.exports = function(MainTopic) {
     const postLimit = 4;
     const postSkip = 0;
 
-    const result = await Promise.all(
+    let result = await Promise.all(
       mainTopics.map(async mainTopic => {
         const posts = await Post.list(
           postLimit,
@@ -35,16 +35,20 @@ module.exports = function(MainTopic) {
         );
         mainTopic.subTopics = posts;
         if (posts.rows.length > 0) {
-          mainTopic.upVote = posts.rows.reduce(
-            (prev, next) => prev.upVote + next.upVote
-          );
+          let upVote = 0;
+          let downVote = 0;
+          let numberOfFeedbacks = 0;
 
-          mainTopic.downVote = posts.rows.reduce(
-            (prev, next) => prev.downVote + next.downVote
-          );
-          mainTopic.numberOfFeedbacks = posts.rows.reduce(
-            (prev, next) => prev.numberOfFeedbacks + next.numberOfFeedbacks
-          );
+          posts.rows.forEach(post => {
+            upVote += post.upVote;
+            downVote += post.downVote;
+            numberOfFeedbacks += post.numberOfFeedbacks;
+          });
+
+          mainTopic.upVote = upVote;
+          mainTopic.downVote = downVote;
+          mainTopic.aggregateVote = upVote - downVote;
+          mainTopic.numberOfFeedbacks = numberOfFeedbacks;
         } else {
           mainTopic.upVote = 0;
           mainTopic.downVote = 0;
@@ -53,6 +57,8 @@ module.exports = function(MainTopic) {
         return mainTopic;
       })
     );
+
+    result = sort(result, "aggregateVote");
 
     return { count, rows: result };
   };
