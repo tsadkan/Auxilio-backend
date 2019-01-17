@@ -14,9 +14,6 @@ module.exports = function(MainTopic) {
     const count = await MainTopic.count({ ...filter });
 
     const mainTopics = await MainTopic.find({
-      where: {
-        ...filter
-      },
       include: ["posts", "createdBy", "category"],
       limit,
       skip
@@ -30,7 +27,7 @@ module.exports = function(MainTopic) {
         const posts = await Post.list(
           postLimit,
           postSkip,
-          { mainTopicId: mainTopic.id },
+          { mainTopicId: mainTopic.id, ...filter },
           accessToken
         );
         mainTopic.subTopics = posts;

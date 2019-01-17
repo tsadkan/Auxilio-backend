@@ -572,8 +572,10 @@ module.exports = function(Post) {
     result = sort(result, "aggregateVote");
 
     result = await includeUserPostVoteStatus(userId, result);
+
+    const categoryList = Array.from(new Set(result.map(res => res.category())));
     result = limit !== 0 ? result.slice(0, limit) : result;
-    return { count, rows: result };
+    return { count, rows: result, categoryList };
   };
 
   Post.remoteMethod("list", {
