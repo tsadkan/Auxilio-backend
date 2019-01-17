@@ -158,7 +158,8 @@
           "patchAttributes": true,
           "updateMyReply": true,
           "deleteMyReply": true,
-          "createReply": true
+          "createReply": true,
+          "createFeedbackReply": true
         }
       }
     }

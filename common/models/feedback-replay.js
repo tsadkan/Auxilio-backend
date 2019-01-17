@@ -180,6 +180,144 @@ module.exports = function(FeedbackReply) {
     try {
       const [fields] = await Promise.all([fieldsPromise]);
 
+      const requiredFields = ["body", "replyId"];
+      validateRequiredFields(requiredFields, fields);
+
+      const { body, replyId } = fields;
+
+      // let year;
+      // let summary;
+      // let bibliography;
+      // let title;
+
+      const files = [];
+      // const filesMeta = JSON.parse(fields.files);
+
+      // const counter = 0;
+
+      // const keys = Object.keys(filesInfo);
+      // for (const key of keys) {
+      //   const fileObject = filesInfo[key][0];
+
+      //   const file = {
+      //     name: fileObject.name,
+      //     size: fileObject.size,
+      //     fileType: fileObject.type,
+      //     originalName: fileObject.originalFilename
+      //   };
+
+      // const fileMeta = filesMeta[counter].meta;
+      // if (fileMeta) {
+      // ({ title, year, summary, bibliography } = fileMeta);
+      // }
+      // const meta = {
+      // title,
+      // year,
+      // summary,
+      // bibliography
+      // };
+
+      // files.push({
+      // file,
+      // meta
+      // });
+      // }
+
+      const { Feedback } = FeedbackReply.app.models;
+      const feedbackReply = await FeedbackReply.findOne({
+        where: { id: replyId }
+      });
+      const feedback = await Feedback.findOne({
+        where: { id: feedbackReply.feedbackId }
+      });
+
+      if (!feedbackReply) {
+        throw error("Invalid reply Id", 422);
+      }
+      const reply = await FeedbackReply.create({
+        body,
+        files,
+        postId: feedback.postId,
+        feedbackId: feedback.id,
+        createdById: accessToken.userId,
+        container: BUCKET,
+        replyId
+      });
+
+      const result = await FeedbackReply.findOne({
+        where: { id: reply.id },
+        include: [
+          {
+            relation: "createdBy",
+            scope: {
+              fields: { fullName: true, email: true, profilePicture: true }
+            }
+          }
+        ]
+      });
+      result.isOwner = true;
+
+      const { postId } = feedback;
+      // update/insert user seen status
+      const lastSeen = new Date();
+      await UserPostStatus.upsertWithWhere(
+        { postId, userAccountId: accessToken.userId },
+        { postId, userAccountId: accessToken.userId, lastSeen }
+      );
+      return result;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  FeedbackReply.remoteMethod("createReply", {
+    description: "Create reply with uploaded file.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "req", type: "object", http: { source: "req" } },
+      { arg: "res", type: "object", http: { source: "res" } }
+    ],
+    returns: {
+      arg: "fileObject",
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/create-reply" }
+  });
+
+  // eslint-disable-next-line no-unused-vars
+  FeedbackReply.createFeedbackReply = async (accessToken, req, res) => {
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    // const { Container } = FeedbackReply.app.models;
+    const { UserPostStatus } = FeedbackReply.app.models;
+    const form = new formidable.IncomingForm();
+
+    // const filePromise = new Promise(resolve => {
+    //   const filesInfo = Container.customUpload(req, res, BUCKET);
+
+    //   return resolve(filesInfo);
+    // });
+
+    const fieldsPromise = new Promise((resolve, reject) => {
+      form.parse(req, (err, fields) => {
+        if (err) return reject(err);
+
+        return resolve(fields);
+      });
+    });
+
+    try {
+      const [fields] = await Promise.all([fieldsPromise]);
+
       const requiredFields = ["body", "feedbackId"];
       validateRequiredFields(requiredFields, fields);
 
@@ -264,7 +402,7 @@ module.exports = function(FeedbackReply) {
     }
   };
 
-  FeedbackReply.remoteMethod("createReply", {
+  FeedbackReply.remoteMethod("createFeedbackReply", {
     description: "Create reply with uploaded file.",
     accepts: [
       {
@@ -284,6 +422,6 @@ module.exports = function(FeedbackReply) {
       type: "object",
       root: true
     },
-    http: { verb: "post", path: "/create-reply" }
+    http: { verb: "post", path: "/create-feedback-reply" }
   });
 };

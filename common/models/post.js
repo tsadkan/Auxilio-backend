@@ -525,7 +525,7 @@ module.exports = function(Post) {
       where: {
         ...filter
       },
-      include: ["feedbacks", "category", "createdBy"]
+      include: ["feedbacks", "category", "createdBy", "replies"]
     });
 
     // prepare new posts to return as a list of posts including the number of new feedbacks
@@ -552,6 +552,7 @@ module.exports = function(Post) {
         post.newFeedbacks = newFeedbacks;
         // attach number of feedbacks post object
         post.numberOfFeedbacks = post.feedbacks().length;
+        post.numberOfReplies = post.replies().length;
         post.lastSeen = lastSeenTimeStamp;
         // @todo delete feedbacks
         return post;

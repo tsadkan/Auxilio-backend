@@ -39,6 +39,14 @@
     "feedback": {
       "type": "belongsTo",
       "model": "Feedback"
+    },
+    "reply": {
+      "type": "belongsTo",
+      "model": "FeedbackReply"
+    },
+    "replies": {
+      "type": "hasMany",
+      "model": "FeedbackReply"
     }
   },
   "acls": [
@@ -97,6 +105,13 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "createReply"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "createFeedbackReply"
     },
     {
       "accessType": "*",
