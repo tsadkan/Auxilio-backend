@@ -1,3 +1,8 @@
+const TokenGenerator = require("uuid-token-generator");
+const loopback = require("loopback");
+const path = require("path");
+const parser = require("useragent-parser-js");
+
 const { error, sort } = require("../util");
 
 module.exports = function(MainTopic) {
@@ -78,6 +83,146 @@ module.exports = function(MainTopic) {
     ],
     returns: { type: "object", root: true },
     http: { path: "/list", verb: "get" }
+  });
+
+  MainTopic.confirmInvitation = async (invitationHash, accessToken) => {
+    if (!accessToken || !accessToken.userId) {
+      throw error("Unauthorized User", 403);
+    }
+
+    const { TopicInvitation } = MainTopic.app.models;
+
+    const topicInvitation = await TopicInvitation.findOne({
+      where: {
+        invitationHash
+      }
+    });
+
+    if (!topicInvitation) throw error("Invalid invitation.", 403);
+
+    const { mainTopicId } = topicInvitation;
+    return { mainTopicId };
+  };
+
+  MainTopic.remoteMethod("confirmInvitation", {
+    description: "confirm user invitation for main topic.",
+    accepts: [
+      { arg: "invitationHash", type: "string", required: true },
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/confrim-invitation", verb: "post" }
+  });
+
+  MainTopic.invite = async (
+    email,
+    mainTopicId,
+    invitationMessage,
+    accessToken,
+    userInfo
+  ) => {
+    if (!accessToken || !accessToken.userId) {
+      throw error("Unauthorized User", 403);
+    }
+
+    const { TopicInvitation, UserAccount, Email } = MainTopic.app.models;
+    const { userId } = accessToken;
+    const user = await UserAccount.findById(userId);
+    const mainTopic = await MainTopic.findById(mainTopicId);
+
+    const sendEmail = async msg => {
+      const result = await Email.send(msg);
+
+      return result;
+    };
+
+    // generate an invitation template containing a link(hash, topicid)
+
+    const { browserName, OSName } = userInfo;
+    // generate unique token
+    const tokgen = new TokenGenerator(256, TokenGenerator.BASE62);
+    const invitationHash = tokgen.generate();
+
+    // read the reset url from env file
+    const { INVITATION_URL } = process.env;
+    const { fullName } = user;
+    const { ADMIN_EMAIL } = process.env;
+    const invitationUrl = `${INVITATION_URL}/${invitationHash}`;
+
+    const content = {
+      fullName,
+      invitationUrl,
+      cardName: mainTopic.title,
+      invitationMessage,
+      OSName,
+      browserName
+    };
+
+    const renderer = loopback.template(
+      path.resolve(__dirname, "../../common/views/invitation-template.ejs")
+    );
+    const htmlBody = renderer(content);
+    const messageContent = {
+      to: email,
+      from: ADMIN_EMAIL,
+      subject: "Invitation",
+      text: "You are invited to a card in auxilio.",
+      html: htmlBody
+    };
+
+    await sendEmail(messageContent);
+
+    // store hash, userId, mainTopicId in invitation table
+
+    await TopicInvitation.create({
+      invitationHash,
+      userId,
+      mainTopicId
+    });
+
+    return { status: true };
+  };
+
+  MainTopic.remoteMethod("invite", {
+    description: "invite a user to a main topic.",
+    accepts: [
+      { arg: "email", type: "string", required: true },
+      { arg: "mainTopicId", type: "string", required: true },
+      { arg: "invitationMessage", type: "string", required: false },
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      },
+      {
+        arg: "userInfo",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const userAgent = req && req.headers["user-agent"];
+          const result = parser.parse(userAgent);
+          const userInfo = {
+            browserName: result.browser,
+            OSName: result.os
+          };
+          return userInfo.browserName && userInfo.OSName ? userInfo : null;
+        }
+      }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/invite", verb: "post" }
   });
 
   MainTopic.createTopic = async (accessToken, title, description) => {

@@ -231,5 +231,9 @@
   "MainTopic": {
     "dataSource": "mongo",
     "public": true
+  },
+  "TopicInvitation": {
+    "dataSource": "mongo",
+    "public": true
   }
 }

@@ -1,0 +1,29 @@
+{
+  "name": "TopicInvitation",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "invitationHash": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "mainTopic": {
+      "type": "belongsTo",
+      "model": "MainTopic",
+      "foreignKey": ""
+    },
+    "user": {
+      "type": "belongsTo",
+      "model": "UserAccount",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
