@@ -28,6 +28,13 @@
     "category": {
       "type": "belongsTo",
       "model": "PostCategory"
+    },
+    "users": {
+      "type": "hasMany",
+      "model": "UserAccount",
+      "foreignKey": "userId",
+      "through": "TopicInvitation",
+      "keyThrough": "mainTopicId"
     }
   },
   "acls": [],

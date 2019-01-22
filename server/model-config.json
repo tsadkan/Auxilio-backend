@@ -13,6 +13,7 @@
       "../node_modules/loopback-softdelete-2-mixin",
       "../node_modules/loopback-row-count-mixin",
       "../common/mixins",
+      "../node_modules/loopback-include-through-mixin",
       "./mixins"
     ]
   },

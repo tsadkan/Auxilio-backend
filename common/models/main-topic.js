@@ -6,6 +6,52 @@ const parser = require("useragent-parser-js");
 const { error, sort } = require("../util");
 
 module.exports = function(MainTopic) {
+  const getMyTopics = async (userId, limit, skip) => {
+    const { TopicInvitation } = MainTopic.app.models;
+
+    const topicInvitations = await TopicInvitation.find({
+      where: {
+        userId,
+        isConfirmed: true
+      },
+      include: ["user"]
+    });
+
+    const myTopicIds = topicInvitations.map(
+      invitation => invitation.mainTopicId
+    );
+
+    const myTopics = await MainTopic.find({
+      where: { id: { inq: myTopicIds } },
+      include: ["posts", "createdBy", "category", "users"],
+      limit,
+      skip
+    });
+
+    return myTopics;
+  };
+
+  const includeInvitedUsers = async (userId, mainTopicId) => {
+    const { TopicInvitation } = MainTopic.app.models;
+
+    const topicInvitations = await TopicInvitation.find({
+      where: {
+        mainTopicId
+      },
+      include: ["user"]
+    });
+
+    const users = topicInvitations.map(invitation => {
+      const user = invitation.user();
+      user.isConfirmed = invitation.isConfirmed;
+      user.isAdmin = invitation.isAdmin;
+      user.isActive = user.id.toString() === userId.toString();
+      return user;
+    });
+
+    return users;
+  };
+
   MainTopic.list = async (limit, skip, filter, accessToken) => {
     const { Post } = MainTopic.app.models;
 
@@ -18,11 +64,7 @@ module.exports = function(MainTopic) {
 
     const count = await MainTopic.count({ ...filter });
 
-    const mainTopics = await MainTopic.find({
-      include: ["posts", "createdBy", "category"],
-      limit,
-      skip
-    });
+    const mainTopics = await getMyTopics(accessToken.userId, limit, skip);
 
     const postLimit = 4;
     const postSkip = 0;
@@ -56,6 +98,13 @@ module.exports = function(MainTopic) {
           mainTopic.downVote = 0;
           mainTopic.numberOfFeedbacks = 0;
         }
+
+        const users = await includeInvitedUsers(
+          accessToken.userId,
+          mainTopic.id
+        );
+        mainTopic.invitedUsers = users;
+
         return mainTopic;
       })
     );
@@ -101,6 +150,11 @@ module.exports = function(MainTopic) {
     if (!topicInvitation) throw error("Invalid invitation.", 403);
 
     const { mainTopicId } = topicInvitation;
+
+    await topicInvitation.patchAttributes({
+      isConfirmed: true
+    });
+
     return { mainTopicId };
   };
 
@@ -119,7 +173,7 @@ module.exports = function(MainTopic) {
       }
     ],
     returns: { type: "object", root: true },
-    http: { path: "/confrim-invitation", verb: "post" }
+    http: { path: "/confirm-invitation", verb: "post" }
   });
 
   MainTopic.invite = async (
@@ -138,6 +192,8 @@ module.exports = function(MainTopic) {
     const user = await UserAccount.findById(userId);
     const mainTopic = await MainTopic.findById(mainTopicId);
 
+    if (!mainTopic) throw error("Unkonwn topic", 403);
+
     const sendEmail = async msg => {
       const result = await Email.send(msg);
 
@@ -155,7 +211,7 @@ module.exports = function(MainTopic) {
     const { INVITATION_URL } = process.env;
     const { fullName } = user;
     const { ADMIN_EMAIL } = process.env;
-    const invitationUrl = `${INVITATION_URL}/${invitationHash}`;
+    const invitationUrl = `${INVITATION_URL}${invitationHash}`;
 
     const content = {
       fullName,
@@ -180,13 +236,22 @@ module.exports = function(MainTopic) {
 
     await sendEmail(messageContent);
 
-    // store hash, userId, mainTopicId in invitation table
-
-    await TopicInvitation.create({
-      invitationHash,
-      userId,
-      mainTopicId
+    const toSentUser = await UserAccount.findOne({
+      where: {
+        email
+      }
     });
+    await TopicInvitation.upsertWithWhere(
+      {
+        userId: toSentUser.id,
+        mainTopicId
+      },
+      {
+        invitationHash,
+        userId: toSentUser.id,
+        mainTopicId
+      }
+    );
 
     return { status: true };
   };
@@ -230,12 +295,21 @@ module.exports = function(MainTopic) {
       throw error("Unauthorized User", 403);
     }
 
+    const { TopicInvitation } = MainTopic.app.models;
+
     const { userId } = accessToken;
 
     const mainTopic = await MainTopic.create({
       title,
       description,
       createdById: userId
+    });
+
+    await TopicInvitation.create({
+      mainTopicId: mainTopic.id,
+      userId,
+      isConfirmed: true,
+      isAdmin: true
     });
 
     return mainTopic;

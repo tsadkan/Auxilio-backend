@@ -54,6 +54,13 @@
     "role": {
       "type": "belongsTo",
       "model": "UserRole"
+    },
+    "mainTopics": {
+      "type": "hasMany",
+      "model": "MainTopic",
+      "foreignKey": "mainTopicId",
+      "through": "TopicInvitation",
+      "keyThrough": "userId"
     }
   },
   "acls": [

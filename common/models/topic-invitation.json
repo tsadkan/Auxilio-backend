@@ -8,7 +8,17 @@
   "properties": {
     "invitationHash": {
       "type": "string",
-      "required": true
+      "required": false
+    },
+    "isConfirmed": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    "isAdmin": {
+      "type": "boolean",
+      "required": false,
+      "default": false
     }
   },
   "validations": [],
