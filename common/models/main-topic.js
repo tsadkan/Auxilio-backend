@@ -176,6 +176,40 @@ module.exports = function(MainTopic) {
     http: { path: "/confirm-invitation", verb: "post" }
   });
 
+  MainTopic.leaveTopic = async (mainTopicId, userId, accessToken) => {
+    if (!accessToken || !accessToken.userId) {
+      throw error("Unauthorized User", 403);
+    }
+
+    const { TopicInvitation } = MainTopic.app.models;
+
+    await TopicInvitation.destroyAll({
+      mainTopicId,
+      userId
+    });
+
+    return { status: true };
+  };
+
+  MainTopic.remoteMethod("leaveTopic", {
+    description: "remove user from topic.",
+    accepts: [
+      { arg: "mainTopicId", type: "string", required: true },
+      { arg: "userId", type: "string", required: true },
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/leave-topic", verb: "post" }
+  });
+
   MainTopic.invite = async (
     email,
     mainTopicId,
