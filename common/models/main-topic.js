@@ -78,6 +78,7 @@ module.exports = function(MainTopic) {
           accessToken
         );
         mainTopic.subTopics = posts;
+        mainTopic.subTopicLength = posts.rows.length;
         if (posts.rows.length > 0) {
           let upVote = 0;
           let downVote = 0;
@@ -97,6 +98,7 @@ module.exports = function(MainTopic) {
           mainTopic.upVote = 0;
           mainTopic.downVote = 0;
           mainTopic.numberOfFeedbacks = 0;
+          mainTopic.aggregateVote = 0;
         }
 
         const users = await includeInvitedUsers(
@@ -109,6 +111,7 @@ module.exports = function(MainTopic) {
       })
     );
 
+    result = sort(result, "subTopicLength");
     result = sort(result, "aggregateVote");
 
     return { count, rows: result };
@@ -243,7 +246,7 @@ module.exports = function(MainTopic) {
 
     // read the reset url from env file
     const { INVITATION_URL } = process.env;
-    const { fullName } = user;
+    const fullName = `${user.givenName} ${user.familyName}`;
     const { ADMIN_EMAIL } = process.env;
     const invitationUrl = `${INVITATION_URL}${invitationHash}`;
 

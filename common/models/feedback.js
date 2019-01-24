@@ -128,7 +128,7 @@ module.exports = function(Feedback) {
           {
             relation: "createdBy",
             scope: {
-              fields: { fullName: true, email: true, profilePicture: true }
+              fields: { givenName: true, email: true, profilePicture: true }
             }
           }
         ]
@@ -300,7 +300,12 @@ module.exports = function(Feedback) {
           {
             relation: "createdBy",
             scope: {
-              fields: { fullName: true, email: true, profilePicture: true }
+              fields: {
+                givenName: true,
+                familyName: true,
+                email: true,
+                profilePicture: true
+              }
             }
           }
         ]

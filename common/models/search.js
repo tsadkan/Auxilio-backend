@@ -17,7 +17,12 @@ module.exports = function(Search) {
         {
           relation: "createdBy",
           scope: {
-            fields: { fullName: true, email: true, profilePicture: true }
+            fields: {
+              givenName: true,
+              familyName: true,
+              email: true,
+              profilePicture: true
+            }
           }
         }
       ]
@@ -36,7 +41,12 @@ module.exports = function(Search) {
         {
           relation: "createdBy",
           scope: {
-            fields: { fullName: true, email: true, profilePicture: true }
+            fields: {
+              givenName: true,
+              familyName: true,
+              email: true,
+              profilePicture: true
+            }
           }
         }
       ]
@@ -54,7 +64,12 @@ module.exports = function(Search) {
         {
           relation: "createdBy",
           scope: {
-            fields: { fullName: true, email: true, profilePicture: true }
+            fields: {
+              givenName: true,
+              familyName: true,
+              email: true,
+              profilePicture: true
+            }
           }
         }
       ]
@@ -100,7 +115,9 @@ module.exports = function(Search) {
             "description",
             "body",
             "createdBy.phoneNumber",
-            "createdBy.fullName",
+            "createdBy.givenName",
+            "createdBy.familyName",
+            "createdBy.organization",
             "createdBy.email"
           ]
         }

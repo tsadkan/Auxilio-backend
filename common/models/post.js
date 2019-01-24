@@ -303,7 +303,12 @@ module.exports = function(Post) {
           {
             relation: "createdBy",
             scope: {
-              fields: { fullName: true, email: true, profilePicture: true }
+              fields: {
+                givenName: true,
+                familyName: true,
+                email: true,
+                profilePicture: true
+              }
             }
           }
         ]
@@ -625,7 +630,8 @@ module.exports = function(Post) {
                       relation: "createdBy",
                       scope: {
                         fields: {
-                          fullName: true,
+                          givenName: true,
+                          familyName: true,
                           email: true,
                           profilePicture: true
                         }
@@ -637,7 +643,12 @@ module.exports = function(Post) {
               {
                 relation: "createdBy",
                 scope: {
-                  fields: { fullName: true, email: true, profilePicture: true }
+                  fields: {
+                    givenName: true,
+                    familyName: true,
+                    email: true,
+                    profilePicture: true
+                  }
                 }
               }
             ],
@@ -647,7 +658,12 @@ module.exports = function(Post) {
         {
           relation: "createdBy",
           scope: {
-            fields: { fullName: true, email: true, profilePicture: true }
+            fields: {
+              givenName: true,
+              familyName: true,
+              email: true,
+              profilePicture: true
+            }
           }
         }
       ]

@@ -22,7 +22,16 @@
       "type": "string",
       "required": true
     },
-    "fullName": {
+    "organization": {
+      "type": "string"
+    },
+    "position": {
+      "type": "string"
+    },
+    "givenName": {
+      "type": "string"
+    },
+    "familyName": {
       "type": "string"
     },
     "email": {

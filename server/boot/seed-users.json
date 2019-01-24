@@ -1,9 +1,7 @@
 {
   "adminUsers": [
-    { "title":"Regional Manager","fullName": "admin", "email": "admin@ahadoo.com", "password": "admin" },
-    { "title":"Assistance Regional Manager","fullName": "admin2", "email": "admin2@ahadoo.com", "password": "admin2" }
+    { "title":"Mr.","position":"Regional Manager","givenName": "admin", "organization":"AhadooTec","familyName":"admin","email": "findtsadik@gmail.com", "password": "admin" }
   ],
   "memberUsers": [
-    { "title":"Assistance To The  Regional Manager","fullName": "testa", "email": "testa@ahadoo.com", "password": "testa" }
   ]
 }

@@ -26,7 +26,10 @@ module.exports = function(UserAccount) {
       id: userInfo.id,
       title: userInfo.title,
       profilePicture: userInfo.profilePicture,
-      fullName: userInfo.fullName,
+      givenName: userInfo.givenName,
+      familyName: userInfo.familyName,
+      organization: userInfo.organization,
+      position: userInfo.position,
       email: userInfo.email,
       phoneNumber: userInfo.phoneNumber,
       role: userInfo.role() ? userInfo.role().name : ""
@@ -40,7 +43,10 @@ module.exports = function(UserAccount) {
     accessToken,
     title,
     profilePicture,
-    fullName,
+    givenName,
+    familyName,
+    organization,
+    position,
     email,
     password,
     phoneNumber
@@ -58,7 +64,10 @@ module.exports = function(UserAccount) {
     const user = {
       roleId: role.id,
       title,
-      fullName,
+      givenName,
+      familyName,
+      organization,
+      position,
       email,
       password,
       phoneNumber,
@@ -81,7 +90,10 @@ module.exports = function(UserAccount) {
       },
       { arg: "title", type: "string", required: true },
       { arg: "profilePicture", type: "string", required: false },
-      { arg: "fullName", type: "string", required: true },
+      { arg: "givenName", type: "string", required: true },
+      { arg: "familyName", type: "string", required: true },
+      { arg: "organization", type: "string", required: false },
+      { arg: "position", type: "string", required: false },
       { arg: "email", type: "string", required: true },
       { arg: "password", type: "string", required: true },
       { arg: "phoneNumber", type: "string", required: false }
@@ -100,7 +112,10 @@ module.exports = function(UserAccount) {
     const fields = [
       "id",
       "title",
-      "fullName",
+      "givenName",
+      "familyName",
+      "organization",
+      "position",
       "email",
       "phoneNumber",
       "password",
@@ -173,7 +188,7 @@ module.exports = function(UserAccount) {
 
       // read the reset url from env file
       const { RESET_PASSWORD_URL } = process.env;
-      const { fullName } = user;
+      const fullName = `${user.givenName} ${user.familyName}`;
       const { ADMIN_EMAIL } = process.env;
       const resetUrl = `${RESET_PASSWORD_URL}/${resetToken}`;
 
@@ -344,7 +359,10 @@ module.exports = function(UserAccount) {
       "id",
       "title",
       "profilePicture",
-      "fullName",
+      "givenName",
+      "familyName",
+      "organization",
+      "position",
       "email",
       "phoneNumber",
       "oldPassword",

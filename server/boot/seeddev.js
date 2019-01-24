@@ -45,7 +45,10 @@ module.exports = async app => {
     for (let i = 0; i < SEED_USERS_AMOUNT; i += 1) {
       users.push({
         title: casual.name_prefix,
-        fullName: casual.full_name,
+        givenName: casual.given_name,
+        familyName: casual.family_name,
+        organization: casual.organization,
+        position: casual.position,
         email: casual.email,
         phoneNumber: casual.phone,
         password: casual.password,
