@@ -205,6 +205,13 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "myReplies"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "search"
     }
   ],
   "methods": {}

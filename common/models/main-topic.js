@@ -214,7 +214,7 @@ module.exports = function(MainTopic) {
   });
 
   MainTopic.invite = async (
-    email,
+    emailObj,
     mainTopicId,
     invitationMessage,
     accessToken,
@@ -263,32 +263,34 @@ module.exports = function(MainTopic) {
       path.resolve(__dirname, "../../common/views/invitation-template.ejs")
     );
     const htmlBody = renderer(content);
-    const messageContent = {
-      to: email,
-      from: ADMIN_EMAIL,
-      subject: "Invitation",
-      text: "You are invited to a card in auxilio.",
-      html: htmlBody
-    };
+    emailObj.invitedEmails.forEach(async email => {
+      const messageContent = {
+        to: email,
+        from: ADMIN_EMAIL,
+        subject: "Invitation",
+        text: "You are invited to a card in auxilio.",
+        html: htmlBody
+      };
 
-    await sendEmail(messageContent);
+      await sendEmail(messageContent);
 
-    const toSentUser = await UserAccount.findOne({
-      where: {
-        email
-      }
+      const toSentUser = await UserAccount.findOne({
+        where: {
+          email
+        }
+      });
+      await TopicInvitation.upsertWithWhere(
+        {
+          userId: toSentUser.id,
+          mainTopicId
+        },
+        {
+          invitationHash,
+          userId: toSentUser.id,
+          mainTopicId
+        }
+      );
     });
-    await TopicInvitation.upsertWithWhere(
-      {
-        userId: toSentUser.id,
-        mainTopicId
-      },
-      {
-        invitationHash,
-        userId: toSentUser.id,
-        mainTopicId
-      }
-    );
 
     return { status: true };
   };
@@ -296,7 +298,7 @@ module.exports = function(MainTopic) {
   MainTopic.remoteMethod("invite", {
     description: "invite a user to a main topic.",
     accepts: [
-      { arg: "email", type: "string", required: true },
+      { arg: "emailObj", type: "object", required: true },
       { arg: "mainTopicId", type: "string", required: true },
       { arg: "invitationMessage", type: "string", required: false },
       {

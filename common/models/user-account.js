@@ -675,4 +675,67 @@ module.exports = function(UserAccount) {
     },
     http: { verb: "post", path: "/get-user-profile" }
   });
+
+  UserAccount.search = async (
+    accessToken,
+    emailObj,
+    keyword,
+    limit,
+    skip,
+    order
+  ) => {
+    if (!accessToken || !accessToken.userId)
+      throw error("Unauthorized User", 403);
+
+    limit = limit || 0;
+    skip = skip || 0;
+    order = order || "createdAt DESC";
+
+    const { invitedEmails } = emailObj;
+
+    const users = await UserAccount.find({
+      where: {
+        and: [
+          {
+            or: [
+              { givenName: { like: `${keyword}.*`, options: "i" } },
+              { familyName: { like: `${keyword}.*`, options: "i" } },
+              { email: { like: `${keyword}.*`, options: "i" } }
+            ]
+          },
+          { email: { nin: invitedEmails } }
+        ]
+      },
+      limit,
+      skip,
+      order
+    });
+
+    return users;
+  };
+
+  UserAccount.remoteMethod("search", {
+    description: "search users by email, givenName or familyName",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "emailObj", type: "object", required: true },
+      { arg: "keyword", type: "string", required: true },
+      { arg: "limit", type: "number" },
+      { arg: "skip", type: "number" },
+      { arg: "order", type: "string" }
+    ],
+    returns: {
+      type: "array",
+      root: true
+    },
+    http: { verb: "post", path: "/search" }
+  });
 };

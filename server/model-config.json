@@ -56,7 +56,8 @@
           "getUserProfile": true,
           "myPosts": true,
           "myFeedbacks": true,
-          "myReplies": true
+          "myReplies": true,
+          "search": true
         }
       }
     }
