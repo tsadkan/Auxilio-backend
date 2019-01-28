@@ -692,6 +692,13 @@ module.exports = function(UserAccount) {
     order = order || "createdAt DESC";
 
     const { invitedEmails } = emailObj;
+    const user = await UserAccount.findOne({
+      where: {
+        id: accessToken.userId
+      }
+    });
+    const { email } = user;
+    invitedEmails.push(email);
 
     const users = await UserAccount.find({
       where: {
