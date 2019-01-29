@@ -745,4 +745,47 @@ module.exports = function(UserAccount) {
     },
     http: { verb: "post", path: "/search" }
   });
+
+  UserAccount.feedback = async (
+    accessToken,
+    feedbackType,
+    urgencyLevel,
+    description
+  ) => {
+    if (!accessToken || !accessToken.userId)
+      throw error("Unauthorized User", 403);
+
+    const { UserFeedback } = UserAccount.app.models;
+    await UserFeedback.create({
+      userId: accessToken.userId,
+      feedbackType,
+      urgencyLevel,
+      description
+    });
+
+    return { status: true };
+  };
+
+  UserAccount.remoteMethod("feedback", {
+    description: "report feedback or an issue.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "feedbackType", type: "string", required: true },
+      { arg: "urgencyLevel", type: "string", required: false },
+      { arg: "description", type: "string", required: true }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/feedback" }
+  });
 };

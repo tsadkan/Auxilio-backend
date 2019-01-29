@@ -57,7 +57,8 @@
           "myPosts": true,
           "myFeedbacks": true,
           "myReplies": true,
-          "search": true
+          "search": true,
+          "feedback": true
         }
       }
     }
@@ -235,6 +236,10 @@
     "public": true
   },
   "TopicInvitation": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "UserFeedback": {
     "dataSource": "mongo",
     "public": true
   }
