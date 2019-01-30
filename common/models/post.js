@@ -459,11 +459,15 @@ module.exports = function(Post) {
         post.endDate && post.startDate
           ? differenceInDays(post.endDate, post.startDate)
           : 0;
-      const remainingDays = post.endDate
-        ? differenceInDays(post.endDate, now)
-        : 0;
+      const remainingDays =
+        post.endDate && post.endDate >= now
+          ? differenceInDays(post.endDate, now)
+          : 0;
       const passedDays = post.endDate
-        ? differenceInDays(now, post.startDate)
+        ? differenceInDays(
+            post.endDate >= now ? now : post.endDate,
+            post.startDate
+          )
         : 0;
 
       post.remainingDays = remainingDays || 0;
