@@ -376,19 +376,27 @@ module.exports = function(UserAccount) {
     const account = await UserAccount.findById(accessToken.userId);
     delete body.id;
 
-    let result = {};
     if (body.newPassword && body.oldPassword) {
-      result = await UserAccount.updatePassword(
+      await UserAccount.updatePassword(
         body.oldPassword,
         body.newPassword,
         accessToken
       );
-      delete body.oldPassword;
-      delete body.newPassword;
     }
 
-    await account.patchAttributes({ ...body });
-    return result.tokenId ? result : { status: true };
+    delete body.oldPassword;
+    delete body.newPassword;
+
+    const hasEmailChanged = body.email !== account.email;
+    if (!hasEmailChanged) delete body.email;
+
+    await account.patchAttributes({ ...body }, false);
+
+    const token = await UserAccount.app.models.CustomAccessToken.create({
+      userId: accessToken.userId
+    });
+
+    return { tokenId: token.id };
   };
   UserAccount.remoteMethod("updateMyProfile", {
     description: "Update users's profile.",
@@ -398,8 +406,8 @@ module.exports = function(UserAccount) {
         type: "object",
         http: ctx => {
           const req = ctx && ctx.req;
-          const accessToken = req && req.accessToken;
-          return accessToken ? req.accessToken : null;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
         }
       },
       { arg: "body", type: "object", http: { source: "body" } }
@@ -434,16 +442,18 @@ module.exports = function(UserAccount) {
     // if old password is not correct throw error
     if (!isMatch) throw error("Incorrect Old Password", 403);
 
-    await user.patchAttributes({
-      password: newPassword
-    });
+    await UserAccount.setPassword(user.id, newPassword);
 
-    const response = await UserAccount.login({
+    await UserAccount.login({
       email: user.email,
       password: newPassword
     });
 
-    return { tokenId: response.id };
+    const token = await UserAccount.app.models.CustomAccessToken.create({
+      userId: user.id
+    });
+
+    return { tokenId: token.id };
   };
   UserAccount.remoteMethod("updatePassword", {
     description: "Request password change",
