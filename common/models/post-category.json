@@ -47,35 +47,35 @@
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$admin",
+      "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "create"
     },
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$admin",
+      "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "replaceById"
     },
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$admin",
+      "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "patchAttributes"
     },
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$admin",
+      "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "deleteById"
     },
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$admin",
+      "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "updateCategory"
     }
