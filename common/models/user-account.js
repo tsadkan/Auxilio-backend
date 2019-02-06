@@ -32,6 +32,7 @@ module.exports = function(UserAccount) {
       position: userInfo.position,
       email: userInfo.email,
       phoneNumber: userInfo.phoneNumber,
+      status: userInfo.status,
       role: userInfo.role() ? userInfo.role().name : ""
     };
   });
@@ -40,7 +41,6 @@ module.exports = function(UserAccount) {
    * Register user with role 'member'
    */
   UserAccount.registerMember = async (
-    accessToken,
     title,
     profilePicture,
     givenName,
@@ -51,8 +51,6 @@ module.exports = function(UserAccount) {
     password,
     phoneNumber
   ) => {
-    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
-    // todo check permission from the access token
     const { UserRole } = UserAccount.app.models;
     const role = await UserRole.findOne({
       where: { name: "member" }
@@ -79,15 +77,6 @@ module.exports = function(UserAccount) {
   UserAccount.remoteMethod("registerMember", {
     description: "Register user",
     accepts: [
-      {
-        arg: "accessToken",
-        type: "object",
-        http: ctx => {
-          const req = ctx && ctx.req;
-          const accessToken = req && req.accessToken;
-          return accessToken ? req.accessToken : null;
-        }
-      },
       { arg: "title", type: "string", required: true },
       { arg: "profilePicture", type: "string", required: false },
       { arg: "givenName", type: "string", required: true },
@@ -103,6 +92,80 @@ module.exports = function(UserAccount) {
       root: true
     },
     http: { verb: "post", path: "/register-member" }
+  });
+
+  /**
+   * Approve Registered user'
+   */
+  UserAccount.approveUser = async (accessToken, userObj) => {
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const { userIds } = userObj;
+    await Promise.all(
+      userIds.map(async userId => {
+        const user = await UserAccount.findById(userId);
+        user.patchAttributes({ status: "ACTIVE" });
+      })
+    );
+
+    return { status: true };
+  };
+  UserAccount.remoteMethod("approveUser", {
+    description: "Approve registered users",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "userObj", type: "object", required: true }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/approve-user" }
+  });
+
+  /**
+   * Approve set of registered user'
+   */
+  UserAccount.disapproveUser = async (accessToken, userObj) => {
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const { userIds } = userObj;
+    await Promise.all(
+      userIds.map(async userId => {
+        const user = await UserAccount.findById(userId);
+        user.patchAttributes({ status: "INACTIVE" });
+      })
+    );
+
+    return { status: true };
+  };
+  UserAccount.remoteMethod("disapproveUser", {
+    description: "Disapprove registered users",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "userObj", type: "object", required: true }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/disapprove-user" }
   });
 
   /**
@@ -657,6 +720,64 @@ module.exports = function(UserAccount) {
     http: { verb: "post", path: "/my-feedbacks" }
   });
 
+  UserAccount.mySystemFeedbacks = async (
+    accessToken,
+    userAccountId,
+    limit,
+    skip,
+    order
+  ) => {
+    const { UserFeedback } = UserAccount.app.models;
+
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const userId = userAccountId || accessToken.userId;
+
+    limit = limit || 0;
+    skip = skip || 0;
+    order = order || "createdAt DESC";
+
+    const feedbackCount = await UserFeedback.count({
+      createdById: userId
+    });
+
+    const userFeedbacks = await UserFeedback.find({
+      where: {
+        and: [{ userId }, { feedbackType: "FEEDBACK" }]
+      },
+      limit,
+      skip,
+      order
+    });
+
+    const feedbacks = { count: feedbackCount, rows: userFeedbacks };
+
+    return feedbacks;
+  };
+  UserAccount.remoteMethod("mySystemFeedbacks", {
+    description: "return user feedbacks with vote",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "userAccountId", type: "string", required: false },
+      { arg: "limit", type: "number", required: false },
+      { arg: "skip", type: "number", required: false },
+      { arg: "order", type: "string", required: false }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/my-system-feedbacks" }
+  });
+
   UserAccount.getUserProfile = async (accessToken, userAccountId) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
@@ -760,6 +881,7 @@ module.exports = function(UserAccount) {
     accessToken,
     feedbackType,
     urgencyLevel,
+    subject,
     description
   ) => {
     if (!accessToken || !accessToken.userId)
@@ -770,6 +892,7 @@ module.exports = function(UserAccount) {
       userId: accessToken.userId,
       feedbackType,
       urgencyLevel,
+      subject,
       description
     });
 
@@ -790,6 +913,7 @@ module.exports = function(UserAccount) {
       },
       { arg: "feedbackType", type: "string", required: true },
       { arg: "urgencyLevel", type: "string", required: false },
+      { arg: "subject", type: "string", required: true },
       { arg: "description", type: "string", required: true }
     ],
     returns: {
@@ -797,5 +921,93 @@ module.exports = function(UserAccount) {
       root: true
     },
     http: { verb: "post", path: "/feedback" }
+  });
+
+  UserAccount.myStatus = async (
+    accessToken,
+    userAccountId,
+    limit,
+    skip,
+    order
+  ) => {
+    const { Feedback, Post, FeedbackReply } = UserAccount.app.models;
+
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const userId = userAccountId || accessToken.userId;
+
+    limit = limit || 0;
+    skip = skip || 0;
+    order = order || "createdAt DESC";
+
+    const postCount = await Post.count({
+      createdById: userId
+    });
+
+    const userPosts = await Post.find({
+      where: {
+        createdById: userId
+      },
+      limit,
+      skip,
+      order
+    });
+
+    const feedbackCount = await Feedback.count({
+      createdById: userId
+    });
+
+    const userFeedbacks = await Feedback.find({
+      where: {
+        createdById: userId
+      },
+      limit,
+      skip,
+      order
+    });
+
+    const replyCount = await FeedbackReply.count({
+      createdById: userId
+    });
+
+    const useReplies = await FeedbackReply.find({
+      where: {
+        createdById: userId
+      },
+      limit,
+      skip,
+      order
+    });
+
+    const result = {
+      post: { count: postCount, rows: userPosts },
+      feedback: { count: feedbackCount, rows: userFeedbacks },
+      feedbackReply: { count: replyCount, rows: useReplies }
+    };
+
+    return result;
+  };
+  UserAccount.remoteMethod("myStatus", {
+    description: "return user feedbacks with vote",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "userAccountId", type: "string", required: false },
+      { arg: "limit", type: "number", required: false },
+      { arg: "skip", type: "number", required: false },
+      { arg: "order", type: "string", required: false }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/my-status" }
   });
 };

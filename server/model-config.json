@@ -57,8 +57,11 @@
           "myPosts": true,
           "myFeedbacks": true,
           "myReplies": true,
+          "mySystemFeedbacks": true,
           "search": true,
-          "feedback": true
+          "feedback": true,
+          "approveUser": true,
+          "disapproveUser": true
         }
       }
     }

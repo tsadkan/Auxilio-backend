@@ -48,6 +48,10 @@
     "password": {
       "type": "string",
       "required": true
+    },
+    "status": {
+      "type": "string",
+      "default": "INACTIVE"
     }
   },
   "validations": [],
@@ -132,7 +136,7 @@
     {
       "accessType": "*",
       "principalType": "ROLE",
-      "principalId": "$admin",
+      "principalId": "$everyone",
       "permission": "ALLOW",
       "property": "registerMember"
     },
@@ -211,6 +215,13 @@
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "ALLOW",
+      "property": "mySystemFeedbacks"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
       "property": "search"
     },
     {
@@ -219,6 +230,20 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "feedback"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "approveUser"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$admin",
+      "permission": "ALLOW",
+      "property": "disapproveUser"
     }
   ],
   "methods": {}
