@@ -459,7 +459,7 @@ module.exports = function(UserAccount) {
       userId: accessToken.userId
     });
 
-    return { tokenId: token.id };
+    return { tokenId: token.id, profilePicture: account.profilePicture };
   };
   UserAccount.remoteMethod("updateMyProfile", {
     description: "Update users's profile.",
