@@ -930,7 +930,12 @@ module.exports = function(UserAccount) {
     skip,
     order
   ) => {
-    const { Feedback, Post, FeedbackReply } = UserAccount.app.models;
+    const {
+      Feedback,
+      Post,
+      FeedbackReply,
+      UserFeedback
+    } = UserAccount.app.models;
 
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
@@ -957,7 +962,7 @@ module.exports = function(UserAccount) {
       createdById: userId
     });
 
-    const userFeedbacks = await Feedback.find({
+    const feedbacks = await Feedback.find({
       where: {
         createdById: userId
       },
@@ -979,16 +984,30 @@ module.exports = function(UserAccount) {
       order
     });
 
+    const userFeedbackCount = await UserFeedback.count({
+      userId
+    });
+
+    const userFeedbacks = await UserFeedback.find({
+      where: {
+        userId
+      },
+      limit,
+      skip,
+      order
+    });
+
     const result = {
-      post: { count: postCount, rows: userPosts },
-      feedback: { count: feedbackCount, rows: userFeedbacks },
-      feedbackReply: { count: replyCount, rows: useReplies }
+      posts: { count: postCount, rows: userPosts },
+      feedbacks: { count: feedbackCount, rows: feedbacks },
+      replies: { count: replyCount, rows: useReplies },
+      systemFeedbacks: { count: userFeedbackCount, rows: userFeedbacks }
     };
 
     return result;
   };
   UserAccount.remoteMethod("myStatus", {
-    description: "return user feedbacks with vote",
+    description: "return user status.",
     accepts: [
       {
         arg: "accessToken",

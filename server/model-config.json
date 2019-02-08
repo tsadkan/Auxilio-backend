@@ -61,7 +61,8 @@
           "search": true,
           "feedback": true,
           "approveUser": true,
-          "disapproveUser": true
+          "disapproveUser": true,
+          "myStatus": true
         }
       }
     }

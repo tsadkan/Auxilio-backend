@@ -244,6 +244,13 @@
       "principalId": "$admin",
       "permission": "ALLOW",
       "property": "disapproveUser"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "myStatus"
     }
   ],
   "methods": {}
