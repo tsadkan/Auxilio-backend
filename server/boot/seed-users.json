@@ -1,6 +1,6 @@
 {
   "adminUsers": [
-    { "title":"Mr.","position":"Regional Manager","givenName": "admin", "organization":"AhadooTec","familyName":"admin","email": "findtsadik@gmail.com", "password": "admin" }
+    { "title":"Mr.","position":"Manager","givenName": "Kaleab", "organization":"AhadooTec","familyName":"Mezgebu","email": "kaltesema@gmail.com", "password": "admin" }
   ],
   "memberUsers": [
   ]
