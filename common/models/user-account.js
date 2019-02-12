@@ -953,6 +953,7 @@ module.exports = function(UserAccount) {
       where: {
         createdById: userId
       },
+      include: ["category"],
       limit,
       skip,
       order
