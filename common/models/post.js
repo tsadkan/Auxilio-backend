@@ -243,10 +243,10 @@ module.exports = function(Post) {
         fieldsPromise
       ]);
 
-      const requiredFields = ["title", "categoryId", "endDate"];
+      const requiredFields = ["title", "categoryId"];
       validateRequiredFields(requiredFields, fields);
 
-      const { title, description, endDate, categoryId, mainTopicId } = fields;
+      const { title, description, categoryId, mainTopicId } = fields;
 
       let year;
       let summary;
@@ -289,7 +289,6 @@ module.exports = function(Post) {
       const post = await Post.create({
         title,
         description,
-        endDate: new Date(endDate),
         files,
         createdById: accessToken.userId,
         mainTopicId,
@@ -576,8 +575,8 @@ module.exports = function(Post) {
       return post;
     });
 
-    let result = includePostProgress(newPosts);
-    result = await includePostVotes(result);
+    // let result = includePostProgress(newPosts);
+    let result = await includePostVotes(newPosts);
     result = sort(result, "aggregateVote");
 
     result = await includeUserPostVoteStatus(userId, result);

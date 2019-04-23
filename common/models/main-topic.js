@@ -7,22 +7,22 @@ const { error, sort } = require("../util");
 
 module.exports = function(MainTopic) {
   const getMyTopics = async (userId, limit, skip) => {
-    const { TopicInvitation } = MainTopic.app.models;
+    // const { TopicInvitation } = MainTopic.app.models;
 
-    const topicInvitations = await TopicInvitation.find({
-      where: {
-        userId,
-        isConfirmed: true
-      },
-      include: ["user"]
-    });
+    // const topicInvitations = await TopicInvitation.find({
+    //   where: {
+    //     userId,
+    //     isConfirmed: true
+    //   },
+    //   include: ["user"]
+    // });
 
-    const myTopicIds = topicInvitations.map(
-      invitation => invitation.mainTopicId
-    );
+    // const myTopicIds = topicInvitations.map(
+    //   invitation => invitation.mainTopicId
+    // );
 
     const myTopics = await MainTopic.find({
-      where: { id: { inq: myTopicIds } },
+      // where: { id: { inq: myTopicIds } },
       include: ["posts", "createdBy", "category", "users"],
       limit,
       skip
@@ -31,26 +31,26 @@ module.exports = function(MainTopic) {
     return myTopics;
   };
 
-  const includeInvitedUsers = async (userId, mainTopicId) => {
-    const { TopicInvitation } = MainTopic.app.models;
+  // const includeInvitedUsers = async (userId, mainTopicId) => {
+  //   const { TopicInvitation } = MainTopic.app.models;
 
-    const topicInvitations = await TopicInvitation.find({
-      where: {
-        mainTopicId
-      },
-      include: ["user"]
-    });
+  //   const topicInvitations = await TopicInvitation.find({
+  //     where: {
+  //       mainTopicId
+  //     },
+  //     include: ["user"]
+  //   });
 
-    const users = topicInvitations.map(invitation => {
-      const user = invitation.user();
-      user.isConfirmed = invitation.isConfirmed;
-      user.isAdmin = invitation.isAdmin;
-      user.isActive = user.id.toString() === userId.toString();
-      return user;
-    });
+  //   const users = topicInvitations.map(invitation => {
+  //     const user = invitation.user();
+  //     user.isConfirmed = invitation.isConfirmed;
+  //     user.isAdmin = invitation.isAdmin;
+  //     user.isActive = user.id.toString() === userId.toString();
+  //     return user;
+  //   });
 
-    return users;
-  };
+  //   return users;
+  // };
 
   MainTopic.list = async (limit, skip, filter, accessToken) => {
     const { Post } = MainTopic.app.models;
@@ -101,11 +101,22 @@ module.exports = function(MainTopic) {
           mainTopic.aggregateVote = 0;
         }
 
-        const users = await includeInvitedUsers(
-          accessToken.userId,
-          mainTopic.id
-        );
-        mainTopic.invitedUsers = users;
+        // const users = await includeInvitedUsers(
+        //   accessToken.userId,
+        //   mainTopic.id
+        // );
+        // mainTopic.invitedUsers = users;
+
+        const participatedUsers = posts.rows
+          .filter(post => post.createdBy())
+          .map(post => {
+            const user = post.createdBy();
+            user.isActive =
+              user.id.toString() === accessToken.userId.toString();
+
+            return user;
+          });
+        mainTopic.participatedUsers = participatedUsers;
 
         return mainTopic;
       })
