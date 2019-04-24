@@ -6,7 +6,7 @@ module.exports = function(app) {
       !context.accessToken ||
       !context.accessToken.userInfo ||
       !context.accessToken.userInfo.role ||
-      context.accessToken.userInfo.role.name !== "admin"
+      context.accessToken.userInfo.role.name !== "Admin"
     ) {
       return false;
     }

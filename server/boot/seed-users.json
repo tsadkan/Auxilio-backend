@@ -1,6 +1,7 @@
 {
   "adminUsers": [
-    { "title":"Mr.","position":"Manager","givenName": "Kaleab", "organization":"AhadooTec","familyName":"Mezgebu","email": "kaltesema@gmail.com", "password": "admin" }
+    { "title":"Mr.","position":"Manager","givenName": "Kaleab", "organization":"AhadooTec","familyName":"Mezgebu","email": "kaltesema@gmail.com", "password": "admin" },
+    { "title":"Mr.","position":"Manager","givenName": "Jhone", "organization":"Google","familyName":"Doe","email": "jhondoe@gmail.com", "password": "admin" }
   ],
   "memberUsers": [
   ]

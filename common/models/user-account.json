@@ -15,8 +15,7 @@
   "protected": ["password"],
   "properties": {
     "title": {
-      "type": "string",
-      "required": true
+      "type": "string"
     },
     "organization": {
       "type": "string"
@@ -33,6 +32,9 @@
     "email": {
       "type": "string",
       "required": true
+    },
+    "country": {
+      "type": "string"
     },
     "phoneNumber": {
       "type": "string"

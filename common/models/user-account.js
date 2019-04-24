@@ -41,19 +41,20 @@ module.exports = function(UserAccount) {
    * Register user with role 'member'
    */
   UserAccount.registerMember = async (
-    title,
+    // title,
     profilePicture,
     givenName,
     familyName,
     organization,
-    position,
+    // position,
     email,
+    country,
     password,
     phoneNumber
   ) => {
     const { UserRole } = UserAccount.app.models;
     const role = await UserRole.findOne({
-      where: { name: "member" }
+      where: { name: "Team Member" }
     });
 
     if (!role) {
@@ -61,11 +62,12 @@ module.exports = function(UserAccount) {
     }
     const user = {
       roleId: role.id,
-      title,
+      // title,
       givenName,
       familyName,
       organization,
-      position,
+      // position,
+      country,
       email,
       password,
       phoneNumber,
@@ -77,13 +79,14 @@ module.exports = function(UserAccount) {
   UserAccount.remoteMethod("registerMember", {
     description: "Register user",
     accepts: [
-      { arg: "title", type: "string", required: true },
+      // { arg: "title", type: "string", required: true },
       { arg: "profilePicture", type: "string", required: false },
       { arg: "givenName", type: "string", required: true },
       { arg: "familyName", type: "string", required: true },
       { arg: "organization", type: "string", required: false },
-      { arg: "position", type: "string", required: false },
+      // { arg: "position", type: "string", required: false },
       { arg: "email", type: "string", required: true },
+      { arg: "country", type: "string", required: false },
       { arg: "password", type: "string", required: true },
       { arg: "phoneNumber", type: "string", required: false }
     ],
@@ -193,7 +196,7 @@ module.exports = function(UserAccount) {
 
     const { UserRole } = UserAccount.app.models;
     const role = await UserRole.findOne({
-      where: { name: "member" }
+      where: { name: "Team Member" }
     });
 
     if (!role) {

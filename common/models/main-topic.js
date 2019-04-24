@@ -116,8 +116,8 @@ module.exports = function(MainTopic) {
 
             return user;
           });
-        mainTopic.participatedUsers = participatedUsers;
-
+        mainTopic.participatedUsers = [...new Set(participatedUsers)];
+        mainTopic.numberOfSubTopics = posts.rows.length;
         return mainTopic;
       })
     );

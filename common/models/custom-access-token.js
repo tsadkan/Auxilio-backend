@@ -2,7 +2,7 @@ module.exports = function(CustomAccessToken) {
   const isAdmin = async roleId => {
     const { UserRole } = CustomAccessToken.app.models;
     const adminRole = await UserRole.findOne({
-      where: { name: "admin" }
+      where: { or: [{ name: "Admin" }, { name: "Moderator" }] }
     });
     if (roleId.toString() !== adminRole.id.toString()) return false;
 

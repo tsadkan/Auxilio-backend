@@ -1,6 +1,8 @@
 const formidable = require("formidable");
 const { differenceInDays } = require("date-fns");
-
+const loopback = require("loopback");
+const path = require("path");
+const parser = require("useragent-parser-js");
 const {
   error,
   isOwner,
@@ -20,6 +22,50 @@ module.exports = function(Post) {
       ctx.instance.startDate = ctx.instance.createdAt;
     }
   });
+
+  const sendEmailToModerator = async (
+    postOwnerEmail,
+    postOwnerFullName,
+    requestFullName,
+    postTitle,
+    postId,
+    reasonToDelete,
+    userInfo
+  ) => {
+    const { Email } = Post.app.models;
+    const { ADMIN_EMAIL, POST_URL } = process.env;
+    const { browserName, OSName } = userInfo;
+
+    const postUrl = `${POST_URL}${postId}`;
+    const content = {
+      postOwnerFullName,
+      requestFullName,
+      postTitle,
+      reasonToDelete,
+      postUrl,
+      OSName,
+      browserName
+    };
+
+    const sendEmail = async msg => {
+      const result = await Email.send(msg);
+
+      return result;
+    };
+    const renderer = loopback.template(
+      path.resolve(__dirname, "../../common/views/post-delete-template.ejs")
+    );
+    const htmlBody = renderer(content);
+    const messageContent = {
+      to: postOwnerEmail,
+      from: ADMIN_EMAIL,
+      subject: "Subtopic delete request",
+      text: "Subtopic delete request",
+      html: htmlBody
+    };
+
+    await sendEmail(messageContent);
+  };
 
   // update post
   Post.updateMyPost = async (accessToken, req, res) => {
@@ -121,8 +167,8 @@ module.exports = function(Post) {
   });
 
   // delete post
-  Post.deleteMyPost = async (accessToken, postId) => {
-    const { Feedback, FeedbackReply, Container } = Post.app.models;
+  Post.deleteMyPost = async (accessToken, postId, reasonToDelete, userInfo) => {
+    const { Feedback, FeedbackReply, Container, UserAccount } = Post.app.models;
 
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
     if (!postId) throw error("postId is required", 403);
@@ -142,8 +188,30 @@ module.exports = function(Post) {
     const { isAdmin } = accessToken.userInfo;
 
     // check if the post is created by this user
-    if (userId.toString() !== post.createdBy().id.toString() && !isAdmin)
-      throw error("Cannot delete others post.", 403);
+    if (
+      userId.toString() !==
+        (post.createdBy() && post.createdBy().id.toString()) &&
+      !isAdmin
+    ) {
+      // throw error("Cannot delete others post.", 403);
+      const postOwnerEmail = post.createdBy().email;
+      const postOwnerFullName = `${post.createdBy().givenName} ${
+        post.createdBy().familyName
+      }`;
+
+      const user = await UserAccount.findById(userId);
+      const requestFullName = `${user.givenName} ${user.familyName}`;
+
+      sendEmailToModerator(
+        postOwnerEmail,
+        postOwnerFullName,
+        requestFullName,
+        post.title,
+        post.id,
+        reasonToDelete,
+        userInfo
+      );
+    }
 
     const feedbacks = await Feedback.find({
       where: {
@@ -208,7 +276,22 @@ module.exports = function(Post) {
           return accessToken ? req.accessToken : null;
         }
       },
-      { arg: "postId", type: "string" }
+      { arg: "postId", type: "string" },
+      { arg: "reasonToDelete", type: "string" },
+      {
+        arg: "userInfo",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const userAgent = req && req.headers["user-agent"];
+          const result = parser.parse(userAgent);
+          const userInfo = {
+            browserName: result.browser,
+            OSName: result.os
+          };
+          return userInfo.browserName && userInfo.OSName ? userInfo : null;
+        }
+      }
     ],
     returns: {
       type: "object",

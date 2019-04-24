@@ -2,7 +2,11 @@ const { error } = require("../../common/util");
 
 async function seedRoles(app) {
   const { UserRole } = app.models;
-  const roles = [{ name: "admin" }, { name: "member" }];
+  const roles = [
+    { name: "Admin" },
+    { name: "Team Member" },
+    { name: "Moderator" }
+  ];
   for (const role of roles) {
     // eslint-disable-next-line
     await UserRole.findOrCreate({ where: { name: role.name } }, role);
@@ -17,7 +21,7 @@ async function seedMembers(app, memberUsers) {
     return;
   }
   const memberRole = await UserRole.findOne({
-    where: { name: "member" }
+    where: { name: "Team Member" }
   });
 
   if (!memberRole) {
@@ -37,7 +41,7 @@ async function seedAdmins(app, adminUsers) {
     return;
   }
   const adminRole = await UserRole.findOne({
-    where: { name: "admin" }
+    where: { name: "Admin" }
   });
 
   if (!adminRole) {
