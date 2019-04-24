@@ -211,6 +211,7 @@ module.exports = function(Post) {
         reasonToDelete,
         userInfo
       );
+      return { status: true };
     }
 
     const feedbacks = await Feedback.find({
