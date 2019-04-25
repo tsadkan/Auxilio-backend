@@ -606,6 +606,68 @@ module.exports = function(UserAccount) {
   });
 
   /**
+   * Return user Agendas, feedback and replies including profile information
+   */
+  UserAccount.myPosts = async (
+    accessToken,
+    userAccountId,
+    limit,
+    skip,
+    order
+  ) => {
+    const { MainTopic } = UserAccount.app.models;
+
+    if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
+
+    const userId = userAccountId || accessToken.userId;
+
+    limit = limit || 0;
+    skip = skip || 0;
+    order = order || "createdAt DESC";
+
+    const agendaCount = await MainTopic.count({
+      createdById: userId
+    });
+
+    const userAgendas = await MainTopic.find({
+      where: {
+        createdById: userId
+      },
+      include: ["post"],
+      limit,
+      skip,
+      order
+    });
+
+    const agendas = { count: agendaCount, rows: userAgendas };
+
+    return agendas;
+  };
+  UserAccount.remoteMethod("myAgendas", {
+    description: "return user posts with vote",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken;
+          return accessToken ? req.accessToken : null;
+        }
+      },
+      { arg: "userAccountId", type: "string", required: false },
+      { arg: "limit", type: "number", required: false },
+      { arg: "skip", type: "number", required: false },
+      { arg: "order", type: "string", required: false }
+    ],
+    returns: {
+      type: "object",
+      root: true
+    },
+    http: { verb: "post", path: "/my-agendas" }
+  });
+
+  /**
    * Return user post, feedback and replies including profile information
    */
   UserAccount.myReplies = async (
@@ -935,6 +997,7 @@ module.exports = function(UserAccount) {
     order
   ) => {
     const {
+      MainTopic,
       Feedback,
       Post,
       FeedbackReply,
@@ -948,6 +1011,20 @@ module.exports = function(UserAccount) {
     limit = limit || 0;
     skip = skip || 0;
     order = order || "createdAt DESC";
+
+    const agendaCount = await MainTopic.count({
+      createdById: userId
+    });
+
+    const userAgendas = await MainTopic.find({
+      where: {
+        createdById: userId
+      },
+      include: ["posts"],
+      limit,
+      skip,
+      order
+    });
 
     const postCount = await Post.count({
       createdById: userId
@@ -1003,6 +1080,7 @@ module.exports = function(UserAccount) {
     });
 
     const result = {
+      agendas: { count: agendaCount, rows: userAgendas },
       posts: { count: postCount, rows: userPosts },
       feedbacks: { count: feedbackCount, rows: feedbacks },
       replies: { count: replyCount, rows: useReplies },
