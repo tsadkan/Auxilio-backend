@@ -34,10 +34,10 @@ module.exports = async app => {
   if (await enoughDataAvailable()) return;
   app.logger.info("Dev Seed Started");
   const memberRole = await UserRole.findOne({
-    where: { name: "member" }
+    where: { name: "Team Member" }
   });
   if (!memberRole) {
-    app.logger.error("Unable to find member role");
+    app.logger.error("Unable to find team member role");
     return;
   }
   try {
