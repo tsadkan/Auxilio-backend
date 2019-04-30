@@ -6,7 +6,8 @@ module.exports = function(app) {
       !context.accessToken ||
       !context.accessToken.userInfo ||
       !context.accessToken.userInfo.role ||
-      context.accessToken.userInfo.role.name !== "Admin"
+      (context.accessToken.userInfo.role.name !== "Admin" &&
+        context.accessToken.userInfo.role.name !== "Moderator")
     ) {
       return false;
     }
@@ -19,7 +20,7 @@ module.exports = function(app) {
       !context.accessToken ||
       !context.accessToken.userInfo ||
       !context.accessToken.userInfo.role ||
-      context.accessToken.userInfo.role.name !== "member"
+      context.accessToken.userInfo.role.name !== "Team Member"
     ) {
       return false;
     }
