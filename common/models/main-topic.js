@@ -66,7 +66,7 @@ module.exports = function(MainTopic) {
 
     const mainTopics = await getMyTopics(accessToken.userId, limit, skip);
 
-    const postLimit = 4;
+    const postLimit = 0;
     const postSkip = 0;
 
     let result = await Promise.all(
