@@ -246,5 +246,21 @@
   "UserFeedback": {
     "dataSource": "mongo",
     "public": true
+  },
+  "DeleteRequest": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "AppNotification": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "NotificationSubscription": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "NotificationConfig": {
+    "dataSource": "mongo",
+    "public": true
   }
 }

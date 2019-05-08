@@ -1,0 +1,61 @@
+{
+  "name": "NotificationConfig",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": false
+  },
+  "mixins": {
+    "TimeStamp": true,
+    "SoftDelete": true,
+    "RowCount": true
+  },
+  "properties": {
+    "onTopicCreate": {
+      "type": "boolean",
+      "default": true
+    },
+    "onSubTopicCreate": {
+      "type": "boolean",
+      "default": false
+    },
+    "onMySubTopicCreate": {
+      "type": "boolean",
+      "default": false
+    },
+    "onMyFeedbackCreate": {
+      "type": "boolean",
+      "default": false
+    },
+    "onFeedbackCreate": {
+      "type": "boolean",
+      "default": false
+    },
+    "onReplyCreate": {
+      "type": "boolean",
+      "default": false
+    },
+    "onMyReplyCreate": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "validations": [],
+  "relations": {
+    "userAccount": {
+      "type": "belongsTo",
+      "model": "UserAccount",
+      "foreignKey": ""
+    }
+  },
+  "acls": [
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "*"
+    }
+  ],
+  "methods": {}
+}

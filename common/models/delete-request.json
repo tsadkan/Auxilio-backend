@@ -1,0 +1,55 @@
+{
+  "name": "DeleteRequest",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "mixins": {
+    "TimeStamp": true,
+    "SoftDelete": true,
+    "RowCount": true
+  },
+  "properties": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "link": {
+      "type": "string"
+    },
+    "reasonToDelete": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "type": "string",
+      "default": "PENDING"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "mainTopic": {
+      "type": "belongsTo",
+      "model": "MainTopic"
+    },
+    "post": {
+      "type": "belongsTo",
+      "model": "Post"
+    },
+    "feedback": {
+      "type": "belongsTo",
+      "model": "Feedback"
+    },
+    "requestedBy": {
+      "type": "belongsTo",
+      "model": "UserAccount"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

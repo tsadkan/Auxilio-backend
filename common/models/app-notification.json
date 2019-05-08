@@ -1,0 +1,54 @@
+{
+  "name": "AppNotification",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": false
+  },
+  "mixins": {
+    "TimeStamp": true,
+    "SoftDelete": true,
+    "RowCount": true
+  },
+  "properties": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "body": {
+      "type": "string"
+    },
+    "isSeen": {
+      "type": "boolean",
+      "default": false
+    },
+    "isPush": {
+      "type": "boolean",
+      "default": true
+    },
+    "batch": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object"
+    }  
+  },
+  "validations": [],
+  "relations": {
+    "userAccount": {
+      "type": "belongsTo",
+      "model": "UserAccount",
+      "foreignKey": ""
+    }
+  },
+  "acls": [
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "*"
+    }
+  ],
+  "methods": {}
+}

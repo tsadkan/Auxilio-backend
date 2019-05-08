@@ -32,6 +32,10 @@
       "type": "belongsTo",
       "model": "UserAccount"
     },
+    "mainTopic": {
+      "type": "belongsTo",
+      "model": "MainTopic"
+    },
     "post": {
       "type": "belongsTo",
       "model": "Post"

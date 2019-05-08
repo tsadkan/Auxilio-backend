@@ -168,7 +168,13 @@ module.exports = function(Post) {
 
   // delete post
   Post.deleteMyPost = async (accessToken, postId, reasonToDelete, userInfo) => {
-    const { Feedback, FeedbackReply, Container, UserAccount } = Post.app.models;
+    const {
+      Feedback,
+      FeedbackReply,
+      Container,
+      UserAccount,
+      DeleteRequest
+    } = Post.app.models;
 
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
     if (!postId) throw error("postId is required", 403);
@@ -201,6 +207,27 @@ module.exports = function(Post) {
 
       const user = await UserAccount.findById(userId);
       const requestFullName = `${user.givenName} ${user.familyName}`;
+
+      const { SUBTOPIC_DETAIL_URL } = process.env;
+
+      const link = `${SUBTOPIC_DETAIL_URL}${post.id}`;
+
+      await DeleteRequest.findOrCreate(
+        {
+          where: {
+            requestedById: userId,
+            postId: post.id
+          }
+        },
+        {
+          title: post.title,
+          link,
+          reasonToDelete,
+          type: "POST",
+          requestedById: userId,
+          postId: post.id
+        }
+      );
 
       sendEmailToModerator(
         postOwnerEmail,
@@ -301,10 +328,43 @@ module.exports = function(Post) {
     http: { verb: "delete", path: "/delete-my-post" }
   });
 
+  const hasParticipatedInTopic = async (mainTopicId, userIds) => {
+    const { Feedback } = Post.app.models;
+
+    const posts = await Post.find({
+      where: {
+        mainTopicId,
+        createdById: { inq: userIds }
+      }
+    });
+
+    const postIds = posts.map(post => post.createdById.toString());
+
+    const feedbacks = await Feedback.find({
+      where: {
+        mainTopicId,
+        createdById: { inq: userIds }
+      }
+    });
+
+    const feedbackIds = feedbacks.map(feedback =>
+      feedback.createdById.toString()
+    );
+
+    const allIds = [...postIds, ...feedbackIds];
+    return [...new Set(allIds)];
+  };
+
   Post.createPost = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
 
-    const { Container, UserPostStatus } = Post.app.models;
+    const {
+      Container,
+      UserPostStatus,
+      NotificationConfig,
+      MainTopic,
+      AppNotification
+    } = Post.app.models;
     const form = new formidable.IncomingForm();
 
     const filePromise = new Promise(resolve => {
@@ -405,6 +465,58 @@ module.exports = function(Post) {
         { postId: post.id, userAccountId: accessToken.userId, lastSeen }
       );
 
+      /**  filter users who have a config of recieving notification when new subtopic is created
+       * and the creator of the topic which holds the newly created subtopic
+       */
+
+      const mainTopic = await MainTopic.findById(mainTopicId);
+      const topicCreatorId = mainTopic.createdById;
+
+      const subtopicNotificationConfigs = await NotificationConfig.find({
+        where: {
+          onSubTopicCreate: true
+        }
+      });
+      const subtopicSubscribedUsersIds = subtopicNotificationConfigs.map(
+        config => config.userAccountId
+      );
+
+      const onlySubtopicNotificationConfigs = await NotificationConfig.find({
+        where: {
+          onMySubTopicCreate: true
+        }
+      });
+
+      const onlysubtopicSubscribedUsersIds = await hasParticipatedInTopic(
+        mainTopicId,
+        onlySubtopicNotificationConfigs
+      );
+
+      const totalUsers = [
+        ...new Set(
+          subtopicSubscribedUsersIds,
+          onlysubtopicSubscribedUsersIds,
+          topicCreatorId
+        )
+      ];
+      // eslint-disable-next-line no-console
+      console.log(totalUsers);
+
+      await Promise.all(
+        (totalUsers || []).map(async id => {
+          //  construct notification object to send for the users
+          const notification = {
+            title: "New Sub Topic",
+            body: `A subtopic with title "${title}" is created under agenda "${
+              mainTopic.title
+            }"`,
+            userAccountId: id
+          };
+          // create notification for the user
+          await AppNotification.create(notification);
+        })
+      );
+
       return result;
     } catch (err) {
       throw err;
@@ -482,6 +594,22 @@ module.exports = function(Post) {
       });
 
       post.voted = (reaction && reaction.vote) || 0;
+    }
+    return posts;
+  };
+
+  /**
+   * Attach aggregated post weight which is
+   * upVotes - downVotes + feedbacks + (.5 * replies)
+   * @param {Array} feedbacks
+   */
+  const includeAggregatedPostWeight = async posts => {
+    for (const post of posts) {
+      const feedbackLength = post.feedbacks().length || 0;
+      const replyLength = post.replies().length || 0;
+
+      post.aggregatedWeight =
+        post.aggregateVote + feedbackLength + 0.5 * replyLength;
     }
     return posts;
   };
@@ -651,7 +779,8 @@ module.exports = function(Post) {
       })
     );
 
-    newPosts = sort(newPosts, "lastSeen");
+    // disable sorting with lastSeen for the time being
+    // newPosts = sort(newPosts, "lastSeen");
 
     // include post ownership detail
     newPosts = newPosts.map(post => {
@@ -661,9 +790,12 @@ module.exports = function(Post) {
 
     // let result = includePostProgress(newPosts);
     let result = await includePostVotes(newPosts);
-    result = sort(result, "aggregateVote");
+    // result = sort(result, "aggregateVote");
 
     result = await includeUserPostVoteStatus(userId, result);
+
+    result = await includeAggregatedPostWeight(result);
+    result = sort(result, "aggregatedWeight");
 
     const categoryList = Array.from(new Set(result.map(res => res.category())));
     result = limit !== 0 ? result.slice(0, limit) : result;
@@ -796,5 +928,81 @@ module.exports = function(Post) {
     ],
     returns: { type: "object", root: true },
     http: { path: "/detail", verb: "get" }
+  });
+
+  Post.rejectRequest = async (accessToken, requestId) => {
+    if (!accessToken || !accessToken.userId) {
+      throw error("Unauthorized User", 403);
+    }
+
+    const { isAdmin } = accessToken.userInfo;
+
+    if (!isAdmin) throw error("Unauthorized User", 403);
+
+    const { DeleteRequest } = Post.app.models;
+
+    const deleteRequest = await DeleteRequest.findById(requestId);
+    await deleteRequest.patchAttributes({
+      status: "REJECTED"
+    });
+
+    return { status: true };
+  };
+
+  Post.remoteMethod("rejectRequest", {
+    description: "reject delete request.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      },
+      { arg: "requestId", type: "string", required: true }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/reject-request", verb: "post" }
+  });
+
+  Post.approveRequest = async (accessToken, requestId, postId) => {
+    if (!accessToken || !accessToken.userId) {
+      throw error("Unauthorized User", 403);
+    }
+
+    const { isAdmin } = accessToken.userInfo;
+
+    if (!isAdmin) throw error("Unauthorized User", 403);
+
+    const { DeleteRequest } = Post.app.models;
+
+    const deleteRequest = await DeleteRequest.findById(requestId);
+    await Post.destroyById(postId);
+    await deleteRequest.patchAttributes({
+      status: "APPROVED"
+    });
+
+    return { status: true };
+  };
+
+  Post.remoteMethod("approveRequest", {
+    description: "approve delete request.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      },
+      { arg: "requestId", type: "string", required: true },
+      { arg: "postId", type: "string", required: true }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/approve-request", verb: "post" }
   });
 };

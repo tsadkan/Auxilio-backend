@@ -54,6 +54,19 @@ async function seedAdmins(app, adminUsers) {
   }
 }
 
+async function addMainTopicIdToFeedbacks(app) {
+  const { Feedback } = app.models;
+  const feedbacks = await Feedback.find({
+    include: "post"
+  });
+
+  feedbacks.forEach(async feedback => {
+    feedback.patchAttributes({
+      mainTopicId: feedback.post().mainTopicId || "GARBAGE_ID"
+    });
+  });
+}
+
 function loadSeedUsers(app) {
   try {
     // eslint-disable-next-line
@@ -82,6 +95,7 @@ function loadSeedUsers(app) {
 module.exports = async function(app) {
   app.logger.info("Seeding started");
   await seedRoles(app);
+  await addMainTopicIdToFeedbacks(app);
   const users = loadSeedUsers(app);
   if (users) {
     const { adminUsers, memberUsers } = users;

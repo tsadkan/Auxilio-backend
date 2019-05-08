@@ -6,6 +6,50 @@ const parser = require("useragent-parser-js");
 const { error, sort } = require("../util");
 
 module.exports = function(MainTopic) {
+  const sendEmailToModerator = async (
+    postOwnerEmail,
+    postOwnerFullName,
+    requestFullName,
+    postTitle,
+    postId,
+    reasonToDelete,
+    userInfo
+  ) => {
+    const { Email } = MainTopic.app.models;
+    const { ADMIN_EMAIL, MAIN_TOPIC_URL } = process.env;
+    const { browserName, OSName } = userInfo;
+
+    const postUrl = `${MAIN_TOPIC_URL}${postId}`;
+    const content = {
+      postOwnerFullName,
+      requestFullName,
+      postTitle,
+      reasonToDelete,
+      postUrl,
+      OSName,
+      browserName
+    };
+
+    const sendEmail = async msg => {
+      const result = await Email.send(msg);
+
+      return result;
+    };
+    const renderer = loopback.template(
+      path.resolve(__dirname, "../../common/views/post-delete-template.ejs")
+    );
+    const htmlBody = renderer(content);
+    const messageContent = {
+      to: postOwnerEmail,
+      from: ADMIN_EMAIL,
+      subject: "Agenda delete request",
+      text: "Agenda delete request",
+      html: htmlBody
+    };
+
+    await sendEmail(messageContent);
+  };
+
   const getMyTopics = async (userId, limit, skip) => {
     // const { TopicInvitation } = MainTopic.app.models;
 
@@ -345,7 +389,11 @@ module.exports = function(MainTopic) {
       throw error("Unauthorized User", 403);
     }
 
-    const { TopicInvitation } = MainTopic.app.models;
+    const {
+      TopicInvitation,
+      AppNotification,
+      NotificationConfig
+    } = MainTopic.app.models;
 
     const { userId } = accessToken;
 
@@ -361,6 +409,33 @@ module.exports = function(MainTopic) {
       isConfirmed: true,
       isAdmin: true
     });
+
+    // filter users who have a config of recieving notification when new topic is created
+    const notificationConfigs = await NotificationConfig.find({
+      where: {
+        onTopicCreate: true
+      }
+    });
+    const topicSubscribedUsersId = notificationConfigs.map(
+      config => config.userAccountId
+    );
+
+    // eslint-disable-next-line no-console
+    console.log(topicSubscribedUsersId);
+
+    await Promise.all(
+      (topicSubscribedUsersId || []).map(async id => {
+        //  construct notification object to send for the users
+        const notification = {
+          title: "New Topic",
+          body: `A Topic with title "${title}" is created`,
+          userAccountId: id
+        };
+
+        // create notification for the user
+        await AppNotification.create(notification);
+      })
+    );
 
     return mainTopic;
   };
@@ -382,5 +457,98 @@ module.exports = function(MainTopic) {
     ],
     returns: { type: "object", root: true },
     http: { path: "/create-topic", verb: "post" }
+  });
+
+  MainTopic.deleteRequest = async (
+    accessToken,
+    mainTopicId,
+    reasonToDelete,
+    userInfo
+  ) => {
+    if (!accessToken || !accessToken.userId) {
+      throw error("Unauthorized User", 403);
+    }
+
+    const { UserAccount, DeleteRequest } = MainTopic.app.models;
+
+    const mainTopic = await MainTopic.findOne({
+      where: {
+        id: mainTopicId
+      },
+      include: ["createdBy"]
+    });
+
+    const topicOwnerEmail = mainTopic.createdBy().email;
+    const topicOwnerFullName = `${mainTopic.createdBy().givenName} ${
+      mainTopic.createdBy().familyName
+    }`;
+
+    const user = await UserAccount.findById(accessToken.userId);
+    const requestFullName = `${user.givenName} ${user.familyName}`;
+
+    const { MAIN_TOPIC_URL } = process.env;
+
+    const link = `${MAIN_TOPIC_URL}${mainTopic.id}`;
+
+    await DeleteRequest.findOrCreate(
+      {
+        where: {
+          requestedById: accessToken.userId,
+          mainTopicId: mainTopic.id
+        }
+      },
+      {
+        title: mainTopic.title,
+        link,
+        reasonToDelete,
+        type: "AGENDA",
+        requestedById: accessToken.userId,
+        mainTopicId: mainTopic.id
+      }
+    );
+
+    sendEmailToModerator(
+      topicOwnerEmail,
+      topicOwnerFullName,
+      requestFullName,
+      mainTopic.title,
+      mainTopic.id,
+      reasonToDelete,
+      userInfo
+    );
+    return { status: true };
+  };
+
+  MainTopic.remoteMethod("deleteRequest", {
+    description: "main topic delete request.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      },
+      { arg: "mainTopicId", type: "string", required: true },
+      { arg: "reasonToDelete", type: "string", required: true },
+      {
+        arg: "userInfo",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const userAgent = req && req.headers["user-agent"];
+          const result = parser.parse(userAgent);
+          const userInfo = {
+            browserName: result.browser,
+            OSName: result.os
+          };
+          return userInfo.browserName && userInfo.OSName ? userInfo : null;
+        }
+      }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/delete-request", verb: "post" }
   });
 };

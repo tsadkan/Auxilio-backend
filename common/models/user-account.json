@@ -72,6 +72,10 @@
       "foreignKey": "mainTopicId",
       "through": "TopicInvitation",
       "keyThrough": "userId"
+    },
+    "notificationConfig": {
+      "type": "belongsTo",
+      "model": "NotificationConfig"
     }
   },
   "acls": [

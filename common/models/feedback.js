@@ -1,4 +1,7 @@
 const formidable = require("formidable");
+const loopback = require("loopback");
+const path = require("path");
+const parser = require("useragent-parser-js");
 const {
   error,
   validatesAbsenceOf,
@@ -12,6 +15,50 @@ module.exports = function(Feedback) {
     message: "createdById is required"
   });
   Feedback.validatesPresenceOf("postId", { message: "postId is required" });
+
+  const sendEmailToModerator = async (
+    postOwnerEmail,
+    postOwnerFullName,
+    requestFullName,
+    postTitle,
+    postId,
+    reasonToDelete,
+    userInfo
+  ) => {
+    const { Email } = Feedback.app.models;
+    const { ADMIN_EMAIL, FEEDBACK_URL } = process.env;
+    const { browserName, OSName } = userInfo;
+
+    const postUrl = `${FEEDBACK_URL}${postId}`;
+    const content = {
+      postOwnerFullName,
+      requestFullName,
+      postTitle,
+      reasonToDelete,
+      postUrl,
+      OSName,
+      browserName
+    };
+
+    const sendEmail = async msg => {
+      const result = await Email.send(msg);
+
+      return result;
+    };
+    const renderer = loopback.template(
+      path.resolve(__dirname, "../../common/views/post-delete-template.ejs")
+    );
+    const htmlBody = renderer(content);
+    const messageContent = {
+      to: postOwnerEmail,
+      from: ADMIN_EMAIL,
+      subject: "Agenda delete request",
+      text: "Agenda delete request",
+      html: htmlBody
+    };
+
+    await sendEmail(messageContent);
+  };
 
   /**
    * @todo REFACTOR ME , THIS IS REALLY SHITTY
@@ -166,8 +213,13 @@ module.exports = function(Feedback) {
   });
 
   // delete feedback
-  Feedback.deleteMyFeedback = async (accessToken, feedbackId) => {
-    const { FeedbackReply } = Feedback.app.models;
+  Feedback.deleteMyFeedback = async (
+    accessToken,
+    feedbackId,
+    reasonToDelete,
+    userInfo
+  ) => {
+    const { FeedbackReply, UserAccount, DeleteRequest } = Feedback.app.models;
 
     if (!accessToken || !accessToken.userId) throw error("Forbidden User", 403);
     if (!feedbackId) throw error("feedbackId is required", 403);
@@ -186,9 +238,50 @@ module.exports = function(Feedback) {
     const { userId } = accessToken;
     const { isAdmin } = accessToken.userInfo;
     // check if the feedback is created by this user
-    if (userId.toString() !== feedback.createdById.toString() && !isAdmin)
-      throw error("Cannot delete others feedback.", 403);
+    if (userId.toString() !== feedback.createdById.toString() && !isAdmin) {
+      // throw error("Cannot delete others feedback.", 403);
 
+      // throw error("Cannot delete others post.", 403);
+      const postOwnerEmail = feedback.createdBy().email;
+      const postOwnerFullName = `${feedback.createdBy().givenName} ${
+        feedback.createdBy().familyName
+      }`;
+
+      const user = await UserAccount.findById(userId);
+      const requestFullName = `${user.givenName} ${user.familyName}`;
+
+      const { FEEDBACK_URL } = process.env;
+
+      const link = `${FEEDBACK_URL}${feedback.id}`;
+
+      await DeleteRequest.findOrCreate(
+        {
+          where: {
+            requestedById: userId,
+            postId: feedback.id
+          }
+        },
+        {
+          title: feedback.body,
+          link,
+          reasonToDelete,
+          type: "FEEDBACK",
+          requestedById: userId,
+          feedbackId: feedback.id
+        }
+      );
+
+      sendEmailToModerator(
+        postOwnerEmail,
+        postOwnerFullName,
+        requestFullName,
+        feedback.body,
+        feedback.id,
+        reasonToDelete,
+        userInfo
+      );
+      return { status: true };
+    }
     await Feedback.destroyById(feedbackId);
     await FeedbackReply.destroyAll({
       feedbackId
@@ -208,7 +301,22 @@ module.exports = function(Feedback) {
           return accessToken ? req.accessToken : null;
         }
       },
-      { arg: "feedbackId", type: "string" }
+      { arg: "feedbackId", type: "string" },
+      { arg: "reasonToDelete", type: "string" },
+      {
+        arg: "userInfo",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const userAgent = req && req.headers["user-agent"];
+          const result = parser.parse(userAgent);
+          const userInfo = {
+            browserName: result.browser,
+            OSName: result.os
+          };
+          return userInfo.browserName && userInfo.OSName ? userInfo : null;
+        }
+      }
     ],
     returns: {
       type: "object",
@@ -217,10 +325,44 @@ module.exports = function(Feedback) {
     http: { verb: "delete", path: "/delete-my-feedback" }
   });
 
+  const hasParticipatedInTopic = async (mainTopicId, userIds) => {
+    const { Post } = Feedback.app.models;
+
+    const posts = await Post.find({
+      where: {
+        mainTopicId,
+        createdById: { inq: userIds }
+      }
+    });
+
+    const postIds = posts.map(post => post.createdById.toString());
+
+    const feedbacks = await Feedback.find({
+      where: {
+        mainTopicId,
+        createdById: { inq: userIds }
+      }
+    });
+
+    const feedbackIds = feedbacks.map(feedback =>
+      feedback.createdById.toString()
+    );
+
+    const allIds = [...postIds, ...feedbackIds];
+    return [...new Set(allIds)];
+  };
+
   Feedback.createFeedback = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
-    const { Container, UserPostStatus } = Feedback.app.models;
+    const {
+      Container,
+      UserPostStatus,
+      MainTopic,
+      AppNotification,
+      Post,
+      NotificationConfig
+    } = Feedback.app.models;
     const form = new formidable.IncomingForm();
 
     const filePromise = new Promise(resolve => {
@@ -247,6 +389,8 @@ module.exports = function(Feedback) {
       validateRequiredFields(requiredFields, fields);
 
       const { body, postId } = fields;
+      const post = await Post.findById(postId);
+      const { mainTopicId } = post;
 
       let year;
       let summary;
@@ -290,6 +434,7 @@ module.exports = function(Feedback) {
         body,
         files,
         postId,
+        mainTopicId,
         createdById: accessToken.userId,
         container: BUCKET
       });
@@ -318,6 +463,63 @@ module.exports = function(Feedback) {
         { postId, userAccountId: accessToken.userId },
         { postId, userAccountId: accessToken.userId, lastSeen }
       );
+
+      /**  filter users who have a config of recieving notification when new feedback is created
+       * and the creator of the topic which holds the newly created subtopic
+       */
+
+      /**  filter all users with  
+       *  (- onFeedbackCreate and
+       *   - participated on 
+            - create post inside this feedbacks main topic or
+            - create feedback inside this main topic
+          ) and (
+            - onMyFeedbackCreate and
+            - participated on
+              - creator post of this feedbacks post
+              - creator of feedback inside this post
+          ) 
+      */
+
+      const mainTopic = await MainTopic.findById(mainTopicId);
+      const topicCreatorId = mainTopic.createdById;
+
+      const feedbackNotificationConfigs = await NotificationConfig.find({
+        where: {
+          onFeedbackCreate: true
+        }
+      });
+      let feedbackSubscribedUsersIds = feedbackNotificationConfigs.map(
+        config => config.userAccountId
+      );
+
+      feedbackSubscribedUsersIds = await hasParticipatedInTopic(
+        mainTopicId,
+        feedbackSubscribedUsersIds
+      );
+
+      feedbackSubscribedUsersIds = [
+        ...new Set(feedbackSubscribedUsersIds, topicCreatorId)
+      ];
+
+      // eslint-disable-next-line no-console
+      console.log(feedbackSubscribedUsersIds);
+
+      await Promise.all(
+        (feedbackSubscribedUsersIds || []).map(async id => {
+          //  construct notification object to send for the users
+          const notification = {
+            title: "New comment",
+            body: `A comment with title "${body}" is created under subtopic "${
+              post.title
+            }"`,
+            userAccountId: id
+          };
+          // create notification for the user
+          await AppNotification.create(notification);
+        })
+      );
+
       return result;
     } catch (err) {
       throw err;
@@ -345,5 +547,81 @@ module.exports = function(Feedback) {
       root: true
     },
     http: { verb: "post", path: "/create-feedback" }
+  });
+
+  Feedback.rejectRequest = async (accessToken, requestId) => {
+    if (!accessToken || !accessToken.userId) {
+      throw error("Unauthorized User", 403);
+    }
+
+    const { isAdmin } = accessToken.userInfo;
+
+    if (!isAdmin) throw error("Unauthorized User", 403);
+
+    const { DeleteRequest } = Feedback.app.models;
+
+    const deleteRequest = await DeleteRequest.findById(requestId);
+    await deleteRequest.patchAttributes({
+      status: "REJECTED"
+    });
+
+    return { status: true };
+  };
+
+  Feedback.remoteMethod("rejectRequest", {
+    description: "reject delete request.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      },
+      { arg: "requestId", type: "string", required: true }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/reject-request", verb: "post" }
+  });
+
+  Feedback.approveRequest = async (accessToken, requestId, feedbackId) => {
+    if (!accessToken || !accessToken.userId) {
+      throw error("Unauthorized User", 403);
+    }
+
+    const { isAdmin } = accessToken.userInfo;
+
+    if (!isAdmin) throw error("Unauthorized User", 403);
+
+    const { DeleteRequest } = Feedback.app.models;
+
+    const deleteRequest = await DeleteRequest.findById(requestId);
+    await Feedback.destroyById(feedbackId);
+    await deleteRequest.patchAttributes({
+      status: "APPROVED"
+    });
+
+    return { status: true };
+  };
+
+  Feedback.remoteMethod("approveRequest", {
+    description: "approve delete request.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      },
+      { arg: "requestId", type: "string", required: true },
+      { arg: "feedbackId", type: "string", required: true }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/approve-request", verb: "post" }
   });
 };

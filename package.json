@@ -35,6 +35,7 @@
     "loopback-row-count-mixin": "^0.1.8",
     "loopback-softdelete-2-mixin": "0.0.4",
     "rate-limiter-flexible": "^0.20.2",
+    "request-promise": "^4.2.4",
     "serve-favicon": "^2.0.1",
     "strong-error-handler": "^3.0.0",
     "useragent-parser-js": "^1.0.3",

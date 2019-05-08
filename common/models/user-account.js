@@ -52,7 +52,7 @@ module.exports = function(UserAccount) {
     password,
     phoneNumber
   ) => {
-    const { UserRole } = UserAccount.app.models;
+    const { UserRole, NotificationConfig } = UserAccount.app.models;
     const role = await UserRole.findOne({
       where: { name: "Team Member" }
     });
@@ -60,6 +60,8 @@ module.exports = function(UserAccount) {
     if (!role) {
       throw error("unable to find member role");
     }
+    const notificationConfig = await NotificationConfig.create();
+
     const user = {
       roleId: role.id,
       // title,
@@ -71,9 +73,13 @@ module.exports = function(UserAccount) {
       email,
       password,
       phoneNumber,
-      profilePicture
+      profilePicture,
+      notificationConfigId: notificationConfig.id
     };
+
     const createdUser = await UserAccount.create(user);
+
+    notificationConfig.patchAttributes({userAccountId: createdUser.id});
     return createdUser;
   };
   UserAccount.remoteMethod("registerMember", {
@@ -98,7 +104,7 @@ module.exports = function(UserAccount) {
   });
 
   /**
-   * Approve Registered user'
+   * Approve Registered user
    */
   UserAccount.approveUser = async (accessToken, userObj) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
