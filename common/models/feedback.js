@@ -22,14 +22,15 @@ module.exports = function(Feedback) {
     requestFullName,
     postTitle,
     postId,
+    feedbackId,
     reasonToDelete,
     userInfo
   ) => {
     const { Email } = Feedback.app.models;
-    const { ADMIN_EMAIL, FEEDBACK_URL } = process.env;
+    const { ADMIN_EMAIL, POST_URL } = process.env;
     const { browserName, OSName } = userInfo;
 
-    const postUrl = `${FEEDBACK_URL}${postId}`;
+    const postUrl = `${POST_URL}${postId}/${feedbackId}`;
     const content = {
       postOwnerFullName,
       requestFullName,
@@ -250,9 +251,9 @@ module.exports = function(Feedback) {
       const user = await UserAccount.findById(userId);
       const requestFullName = `${user.givenName} ${user.familyName}`;
 
-      const { FEEDBACK_URL } = process.env;
+      const { POST_URL } = process.env;
 
-      const link = `${FEEDBACK_URL}${feedback.id}`;
+      const link = `${POST_URL}${feedback.postId}/${feedback.id}`;
 
       await DeleteRequest.findOrCreate(
         {
@@ -276,6 +277,7 @@ module.exports = function(Feedback) {
         postOwnerFullName,
         requestFullName,
         feedback.body,
+        feedback.postId,
         feedback.id,
         reasonToDelete || "I report to delete this feedback",
         userInfo

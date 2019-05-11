@@ -19,7 +19,7 @@ module.exports = function(MainTopic) {
     const { ADMIN_EMAIL, MAIN_TOPIC_URL } = process.env;
     const { browserName, OSName } = userInfo;
 
-    const postUrl = `${MAIN_TOPIC_URL}${postId}`;
+    const postUrl = `${MAIN_TOPIC_URL}`
     const content = {
       postOwnerFullName,
       requestFullName,
