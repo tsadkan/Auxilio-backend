@@ -30,7 +30,7 @@ module.exports = function(Feedback) {
     const { ADMIN_EMAIL, POST_URL } = process.env;
     const { browserName, OSName } = userInfo;
 
-    const postUrl = `${POST_URL}${postId}/${feedbackId}`;
+    const postUrl = `${POST_URL}${postId}?scrollTarget=target-${feedbackId}`;
     const content = {
       postOwnerFullName,
       requestFullName,
@@ -253,7 +253,7 @@ module.exports = function(Feedback) {
 
       const { POST_URL } = process.env;
 
-      const link = `${POST_URL}${feedback.postId}/${feedback.id}`;
+      const link = `${POST_URL}${feedback.postId}?scrollTarget=target-${feedback.id}`;
 
       await DeleteRequest.findOrCreate(
         {
