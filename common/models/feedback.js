@@ -52,8 +52,8 @@ module.exports = function(Feedback) {
     const messageContent = {
       to: postOwnerEmail,
       from: ADMIN_EMAIL,
-      subject: "Agenda delete request",
-      text: "Agenda delete request",
+      subject: "Feedback delete request",
+      text: "Feedback delete request",
       html: htmlBody
     };
 
@@ -277,7 +277,7 @@ module.exports = function(Feedback) {
         requestFullName,
         feedback.body,
         feedback.id,
-        reasonToDelete,
+        reasonToDelete || "I report to delete this feedback",
         userInfo
       );
       return { status: true };
