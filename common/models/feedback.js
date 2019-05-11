@@ -264,7 +264,7 @@ module.exports = function(Feedback) {
         {
           title: feedback.body,
           link,
-          reasonToDelete,
+          reasonToDelete: "I report to delete this feedback",
           type: "FEEDBACK",
           requestedById: userId,
           feedbackId: feedback.id
