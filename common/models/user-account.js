@@ -79,7 +79,7 @@ module.exports = function(UserAccount) {
 
     const createdUser = await UserAccount.create(user);
 
-    notificationConfig.patchAttributes({userAccountId: createdUser.id});
+    notificationConfig.patchAttributes({ userAccountId: createdUser.id });
     return createdUser;
   };
   UserAccount.remoteMethod("registerMember", {
@@ -639,7 +639,7 @@ module.exports = function(UserAccount) {
       where: {
         createdById: userId
       },
-      include: ["post"],
+      include: ["posts"],
       limit,
       skip,
       order

@@ -24,9 +24,10 @@ module.exports = function(app) {
         headings,
         contents,
         include_player_ids,
-        small_icon: "./app_icon.png",
-        large_icon: "./app_icon.png",
-        icon: "./app_icon.png"
+        small_icon: "./logo.png",
+        large_icon: "./logo.png",
+        chrome_web_icon: "https://auxilio.i4policy.org/images/logo.png",
+        icon: "./logo.png"
       };
 
       const option = {

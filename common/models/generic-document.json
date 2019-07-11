@@ -1,0 +1,54 @@
+{
+    "name": "GenericDocument",
+    "base": "PersistedModel",
+    "strict": true,
+    "idInjection": true,
+    "options": {
+      "validateUpsert": false
+    },
+    "mixins": {
+      "TimeStamp": true,
+      "SoftDelete": true,
+      "RowCount": true
+    },
+    "properties": {
+      "title": {
+        "type": "string",
+        "required": true
+      },
+      "files": {
+        "type": [
+          "object"
+        ]
+      },
+      "container": {
+        "type": "string",
+        "default": "generic-document"
+      }
+    },
+    "validations": [],
+    "relations": {
+      "uploadedBy": {
+        "type": "belongsTo",
+        "model": "UserAccount"
+      }
+    },
+    "acls": [
+      {
+        "accessType": "*",
+        "principalType": "ROLE",
+        "principalId": "$everyone",
+        "permission": "DENY",
+        "property": "*"
+      },
+      {
+        "accessType": "*",
+        "principalType": "ROLE",
+        "principalId": "$admin",
+        "permission": "ALLOW",
+        "property": "*"
+      }
+    ],
+    "methods": {}
+  }
+  

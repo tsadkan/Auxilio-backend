@@ -127,7 +127,8 @@
           "patchAttributes": true,
           "updateMyPost": true,
           "deleteMyPost": true,
-          "createPost": true
+          "createPost": true,
+          "watch": true
         }
       }
     }
@@ -166,7 +167,8 @@
           "updateMyReply": true,
           "deleteMyReply": true,
           "createReply": true,
-          "createFeedbackReply": true
+          "createFeedbackReply": true,
+          "list": true
         }
       }
     }
@@ -260,6 +262,10 @@
     "public": true
   },
   "NotificationConfig": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "GenericDocument": {
     "dataSource": "mongo",
     "public": true
   }
