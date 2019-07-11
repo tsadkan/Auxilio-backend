@@ -253,7 +253,9 @@ module.exports = function(Feedback) {
 
       const { POST_URL } = process.env;
 
-      const link = `${POST_URL}${feedback.postId}?scrollTarget=target-${feedback.id}`;
+      const link = `${POST_URL}${feedback.postId}?scrollTarget=target-${
+        feedback.id
+      }`;
 
       await DeleteRequest.findOrCreate(
         {
@@ -354,6 +356,33 @@ module.exports = function(Feedback) {
     return [...new Set(allIds)];
   };
 
+  const hasParticipatedInMyFeedback = async (postId, userIds) => {
+    const { Post } = Feedback.app.models;
+
+    const posts = await Post.find({
+      where: {
+        id: postId,
+        createdById: { inq: userIds }
+      }
+    });
+
+    const postIds = posts.map(post => post.createdById.toString());
+
+    const feedbacks = await Feedback.find({
+      where: {
+        postId,
+        createdById: { inq: userIds }
+      }
+    });
+
+    const feedbackIds = feedbacks.map(feedback =>
+      feedback.createdById.toString()
+    );
+
+    const allIds = [...postIds, ...feedbackIds];
+    return [...new Set(allIds)];
+  };
+
   Feedback.createFeedback = async (accessToken, req, res) => {
     if (!accessToken || !accessToken.userId) throw Error("Forbidden User", 403);
 
@@ -363,7 +392,8 @@ module.exports = function(Feedback) {
       MainTopic,
       AppNotification,
       Post,
-      NotificationConfig
+      NotificationConfig,
+      UserAccount
     } = Feedback.app.models;
     const form = new formidable.IncomingForm();
 
@@ -466,6 +496,8 @@ module.exports = function(Feedback) {
         { postId, userAccountId: accessToken.userId, lastSeen }
       );
 
+      const user = await UserAccount.findById(accessToken.userId);
+
       /**  filter users who have a config of recieving notification when new feedback is created
        * and the creator of the topic which holds the newly created subtopic
        */
@@ -484,6 +516,7 @@ module.exports = function(Feedback) {
       */
 
       const mainTopic = await MainTopic.findById(mainTopicId);
+      // eslint-disable-next-line no-unused-vars
       const topicCreatorId = mainTopic.createdById;
 
       const feedbackNotificationConfigs = await NotificationConfig.find({
@@ -500,21 +533,40 @@ module.exports = function(Feedback) {
         feedbackSubscribedUsersIds
       );
 
-      feedbackSubscribedUsersIds = [
-        ...new Set(feedbackSubscribedUsersIds, topicCreatorId)
+      const onlyFeedbackNotificationConfigs = await NotificationConfig.find({
+        where: {
+          onMyFeedbackCreate: true
+        }
+      });
+
+      let onlyFeedbackSubscribedUsersIds = onlyFeedbackNotificationConfigs.map(
+        config => config.userAccountId
+      );
+
+      onlyFeedbackSubscribedUsersIds = await hasParticipatedInMyFeedback(
+        postId,
+        onlyFeedbackSubscribedUsersIds
+      );
+
+      let allIds = [
+        ...feedbackSubscribedUsersIds,
+        // topicCreatorId,
+        ...onlyFeedbackSubscribedUsersIds
       ];
 
+      allIds = [...new Set(allIds)];
+
       // eslint-disable-next-line no-console
-      console.log(feedbackSubscribedUsersIds);
+      console.log(allIds);
 
       await Promise.all(
-        (feedbackSubscribedUsersIds || []).map(async id => {
+        (allIds || []).map(async id => {
           //  construct notification object to send for the users
           const notification = {
             title: "New comment",
-            body: `A comment with title "${body}" is created under subtopic "${
-              post.title
-            }"`,
+            body: `i4policy \n ${user.givenName} ${
+              user.familyName
+            } gave a comment under subtopic "${post.title}".`,
             userAccountId: id
           };
           // create notification for the user

@@ -5,6 +5,11 @@
   "options": {
     "validateUpsert": true
   },
+  "mixins": {
+    "TimeStamp": true,
+    "SoftDelete": true,
+    "RowCount": true
+  },
   "properties": {
     "title": {
       "type": "string",
@@ -23,6 +28,11 @@
     "posts": {
       "type": "hasMany",
       "model": "Post",
+      "foreignKey": ""
+    },
+    "feedbacks": {
+      "type": "hasMany",
+      "model": "Feedback",
       "foreignKey": ""
     },
     "category": {

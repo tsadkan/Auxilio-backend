@@ -363,7 +363,8 @@ module.exports = function(Post) {
       UserPostStatus,
       NotificationConfig,
       MainTopic,
-      AppNotification
+      AppNotification,
+      UserAccount
     } = Post.app.models;
     const form = new formidable.IncomingForm();
 
@@ -465,11 +466,13 @@ module.exports = function(Post) {
         { postId: post.id, userAccountId: accessToken.userId, lastSeen }
       );
 
+      const user = await UserAccount.findById(accessToken.userId);
       /**  filter users who have a config of recieving notification when new subtopic is created
        * and the creator of the topic which holds the newly created subtopic
        */
 
       const mainTopic = await MainTopic.findById(mainTopicId);
+      // eslint-disable-next-line no-unused-vars
       const topicCreatorId = mainTopic.createdById;
 
       const subtopicNotificationConfigs = await NotificationConfig.find({
@@ -487,18 +490,23 @@ module.exports = function(Post) {
         }
       });
 
-      const onlysubtopicSubscribedUsersIds = await hasParticipatedInTopic(
-        mainTopicId,
-        onlySubtopicNotificationConfigs
+      let onlysubtopicSubscribedUsersIds = onlySubtopicNotificationConfigs.map(
+        config => config.userAccountId
       );
 
-      const totalUsers = [
-        ...new Set(
-          subtopicSubscribedUsersIds,
-          onlysubtopicSubscribedUsersIds,
-          topicCreatorId
-        )
+      onlysubtopicSubscribedUsersIds = await hasParticipatedInTopic(
+        mainTopicId,
+        onlysubtopicSubscribedUsersIds
+      );
+
+      let totalUsers = [
+        ...subtopicSubscribedUsersIds,
+        ...onlysubtopicSubscribedUsersIds
+        // topicCreatorId
       ];
+
+      totalUsers = [...new Set(totalUsers)];
+
       // eslint-disable-next-line no-console
       console.log(totalUsers);
 
@@ -507,7 +515,9 @@ module.exports = function(Post) {
           //  construct notification object to send for the users
           const notification = {
             title: "New Sub Topic",
-            body: `A subtopic with title "${title}" is created under agenda "${
+            body: `i4policy \n${user.givenName} ${
+              user.familyName
+            } has created a subtopic \n with title "${title}" under agenda "${
               mainTopic.title
             }"`,
             userAccountId: id
@@ -745,7 +755,30 @@ module.exports = function(Post) {
       where: {
         ...filter
       },
-      include: ["feedbacks", "category", "createdBy", "replies"]
+      include: [
+        {
+          relation: "feedbacks",
+          scope: {
+            include: [
+              {
+                relation: "createdBy",
+                scope: {
+                  fields: {
+                    givenName: true,
+                    familyName: true,
+                    email: true,
+                    profilePicture: true
+                  }
+                }
+              }
+            ],
+            order: "createdAt DESC"
+          }
+        },
+        "category",
+        "createdBy",
+        "replies"
+      ]
     });
 
     // prepare new posts to return as a list of posts including the number of new feedbacks
@@ -774,6 +807,7 @@ module.exports = function(Post) {
         post.numberOfFeedbacks = post.feedbacks().length;
         post.numberOfReplies = post.replies().length;
         post.lastSeen = lastSeenTimeStamp;
+        post.isNew = !(userPostStatus && userPostStatus.lastSeen !== undefined);
         // @todo delete feedbacks
         return post;
       })
@@ -1004,5 +1038,37 @@ module.exports = function(Post) {
     ],
     returns: { type: "object", root: true },
     http: { path: "/approve-request", verb: "post" }
+  });
+
+  Post.watch = async (postId, accessToken) => {
+    const { UserPostStatus } = Post.app.models;
+
+    if (!accessToken || !accessToken.userId) {
+      throw Error("Unauthorized User", 403);
+    }
+
+    const lastSeen = new Date();
+    await UserPostStatus.upsertWithWhere(
+      { postId, userAccountId: accessToken.userId },
+      { postId, userAccountId: accessToken.userId, lastSeen }
+    );
+  };
+
+  Post.remoteMethod("list", {
+    description: "watch a specific post.",
+    accepts: [
+      { arg: "postId", type: "string" },
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/watch", verb: "post" }
   });
 };

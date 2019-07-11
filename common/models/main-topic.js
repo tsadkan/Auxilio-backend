@@ -19,7 +19,7 @@ module.exports = function(MainTopic) {
     const { ADMIN_EMAIL, MAIN_TOPIC_URL } = process.env;
     const { browserName, OSName } = userInfo;
 
-    const postUrl = `${MAIN_TOPIC_URL}`
+    const postUrl = `${MAIN_TOPIC_URL}`;
     const content = {
       postOwnerFullName,
       requestFullName,
@@ -392,10 +392,12 @@ module.exports = function(MainTopic) {
     const {
       TopicInvitation,
       AppNotification,
-      NotificationConfig
+      NotificationConfig,
+      UserAccount
     } = MainTopic.app.models;
 
     const { userId } = accessToken;
+    const user = await UserAccount.findById(userId);
 
     const mainTopic = await MainTopic.create({
       title,
@@ -427,8 +429,10 @@ module.exports = function(MainTopic) {
       (topicSubscribedUsersId || []).map(async id => {
         //  construct notification object to send for the users
         const notification = {
-          title: "New Topic",
-          body: `A Topic with title "${title}" is created`,
+          title: "New Agenda",
+          body: `${user.givenName} ${
+            user.familyName
+          } has created a Topic with title "${title}".`,
           userAccountId: id
         };
 

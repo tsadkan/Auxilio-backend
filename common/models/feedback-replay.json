@@ -47,6 +47,10 @@
     "replies": {
       "type": "hasMany",
       "model": "FeedbackReply"
+    },
+    "mainTopic": {
+      "type": "belongsTo",
+      "model": "MainTopic"
     }
   },
   "acls": [
@@ -126,6 +130,13 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "deleteMyReply"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "list"
     }
   ],
   "methods": {}

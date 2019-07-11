@@ -140,6 +140,13 @@
       "principalId": "$authenticated",
       "permission": "ALLOW",
       "property": "detail"
+    },
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$authenticated",
+      "permission": "ALLOW",
+      "property": "watch"
     }
   ],
   "methods": {}
