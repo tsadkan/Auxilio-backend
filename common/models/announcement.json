@@ -1,5 +1,5 @@
 {
-    "name": "GenericDocument",
+    "name": "Announcement",
     "base": "PersistedModel",
     "strict": true,
     "idInjection": true,
@@ -23,7 +23,7 @@
       },
       "container": {
         "type": "string",
-        "default": "generic-document"
+        "default": "announcement"
       }
     },
     "validations": [],

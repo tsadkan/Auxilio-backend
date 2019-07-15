@@ -872,6 +872,24 @@ module.exports = function(Post) {
           scope: { fields: { id: true, name: true, color: true } }
         },
         {
+          relation: "mainTopic",
+          scope: {
+            include: [
+              {
+                relation: "createdBy",
+                scope: {
+                  fields: {
+                    givenName: true,
+                    familyName: true,
+                    email: true,
+                    profilePicture: true
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
           relation: "feedbacks",
           scope: {
             include: [

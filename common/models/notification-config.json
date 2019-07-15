@@ -38,6 +38,10 @@
     "onMyReplyCreate": {
       "type": "boolean",
       "default": false
+    },
+    "onAnnouncementCreate": {
+      "type": "boolean",
+      "default": false
     }
   },
   "validations": [],

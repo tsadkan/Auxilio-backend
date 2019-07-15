@@ -268,5 +268,9 @@
   "GenericDocument": {
     "dataSource": "mongo",
     "public": true
+  },
+  "Announcement": {
+    "dataSource": "mongo",
+    "public": true
   }
 }
