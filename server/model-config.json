@@ -272,5 +272,9 @@
   "Announcement": {
     "dataSource": "mongo",
     "public": true
+  },
+  "News": {
+    "dataSource": "mongo",
+    "public": true
   }
 }
