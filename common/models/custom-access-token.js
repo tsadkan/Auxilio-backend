@@ -2,11 +2,18 @@ module.exports = function(CustomAccessToken) {
   const isAdmin = async roleId => {
     const { UserRole } = CustomAccessToken.app.models;
     const adminRole = await UserRole.findOne({
-      where: { or: [{ name: "Admin" }, { name: "Moderator" }] }
+      where: { name: "Admin" }
     });
-    if (roleId.toString() !== adminRole.id.toString()) return false;
+    const moderatorRole = await UserRole.findOne({
+      where: { name: "Moderator" }
+    });
+    if (
+      roleId.toString() === adminRole.id.toString() ||
+      roleId.toString() === moderatorRole.id.toString()
+    )
+      return true;
 
-    return true;
+    return false;
   };
 
   CustomAccessToken.observe("before save", async ctx => {
