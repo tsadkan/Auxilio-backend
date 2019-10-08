@@ -558,4 +558,57 @@ module.exports = function(MainTopic) {
     returns: { type: "object", root: true },
     http: { path: "/delete-request", verb: "post" }
   });
+
+  MainTopic.movePost = async (accessToken, postId, mainTopicId) => {
+    if (!accessToken || !accessToken.userId) {
+      throw error("Unauthorized User", 403);
+    }
+
+    const { Post, Feedback, FeedbackReply } = MainTopic.app.models;
+
+    const post = await Post.findById(postId);
+    const feedbacks = await Feedback.find({
+      where: {
+        postId
+      }
+    });
+    const replies = await FeedbackReply.find({
+      where: {
+        postId
+      }
+    });
+
+    await Promise.all([
+      post.patchAttributes({ mainTopicId }),
+      ...(feedbacks || []).map(feedback => {
+        return feedback.patchAttributes({ mainTopicId });
+      }),
+      ...(replies || []).map(reply => {
+        return reply.patchAttributes({ mainTopicId });
+      })
+    ]);
+
+    return {
+      status: true
+    };
+  };
+
+  MainTopic.remoteMethod("movePost", {
+    description: "move post to main topic.",
+    accepts: [
+      {
+        arg: "accessToken",
+        type: "object",
+        http: ctx => {
+          const req = ctx && ctx.req;
+          const accessToken = req && req.accessToken ? req.accessToken : null;
+          return accessToken;
+        }
+      },
+      { arg: "postId", type: "string", required: true },
+      { arg: "mainTopicId", type: "string", required: true }
+    ],
+    returns: { type: "object", root: true },
+    http: { path: "/move-post", verb: "post" }
+  });
 };
