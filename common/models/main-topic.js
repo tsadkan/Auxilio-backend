@@ -387,6 +387,8 @@ module.exports = function(MainTopic) {
   MainTopic.createTopic = async (accessToken, title, description) => {
     if (!accessToken || !accessToken.userId) {
       throw error("Unauthorized User", 403);
+    } else if (accessToken.userInfo.isAdmin) {
+      throw error("Cannot create agenda if not Admin or Moderator", 403);
     }
 
     const {
@@ -418,9 +420,10 @@ module.exports = function(MainTopic) {
         onTopicCreate: true
       }
     });
-    const topicSubscribedUsersId = notificationConfigs.map(
-      config => config.userAccountId
-    );
+
+    const topicSubscribedUsersId = notificationConfigs
+      .filter(config => config.userAccountId)
+      .map(config => config.userAccountId);
 
     // eslint-disable-next-line no-console
     console.log(topicSubscribedUsersId);
