@@ -384,10 +384,10 @@ module.exports = function(MainTopic) {
     http: { path: "/invite", verb: "post" }
   });
 
-  MainTopic.createTopic = async (accessToken, title, description) => {
+  MainTopic.createTopic = async (accessToken, id, title, description) => {
     if (!accessToken || !accessToken.userId) {
       throw error("Unauthorized User", 403);
-    } else if (accessToken.userInfo.isAdmin) {
+    } else if (!accessToken.userInfo.isAdmin) {
       throw error("Cannot create agenda if not Admin or Moderator", 403);
     }
 
@@ -401,11 +401,16 @@ module.exports = function(MainTopic) {
     const { userId } = accessToken;
     const user = await UserAccount.findById(userId);
 
-    const mainTopic = await MainTopic.create({
-      title,
-      description,
-      createdById: userId
-    });
+    const mainTopic = await MainTopic.upsertWithWhere(
+      {
+        id: id || ""
+      },
+      {
+        title,
+        description,
+        createdById: userId
+      }
+    );
 
     await TopicInvitation.create({
       mainTopicId: mainTopic.id,
@@ -429,14 +434,14 @@ module.exports = function(MainTopic) {
     console.log(topicSubscribedUsersId);
 
     await Promise.all(
-      (topicSubscribedUsersId || []).map(async id => {
+      (topicSubscribedUsersId || []).map(async uId => {
         //  construct notification object to send for the users
         const notification = {
           title: "New Agenda",
           body: `${user.givenName} ${
             user.familyName
           } has created a Topic with title "${title}".`,
-          userAccountId: id
+          userAccountId: uId
         };
 
         // create notification for the user
@@ -459,6 +464,7 @@ module.exports = function(MainTopic) {
           return accessToken;
         }
       },
+      { arg: "id", type: "string", required: false },
       { arg: "title", type: "string", required: true },
       { arg: "description", type: "string" }
     ],
@@ -580,12 +586,10 @@ module.exports = function(MainTopic) {
 
     await Promise.all([
       post.patchAttributes({ mainTopicId }),
-      ...(feedbacks || []).map(feedback => {
-        return feedback.patchAttributes({ mainTopicId });
-      }),
-      ...(replies || []).map(reply => {
-        return reply.patchAttributes({ mainTopicId });
-      })
+      ...(feedbacks || []).map(feedback =>
+        feedback.patchAttributes({ mainTopicId })
+      ),
+      ...(replies || []).map(reply => reply.patchAttributes({ mainTopicId }))
     ]);
 
     return {
