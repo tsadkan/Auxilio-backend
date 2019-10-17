@@ -276,5 +276,9 @@
   "News": {
     "dataSource": "mongo",
     "public": true
+  },
+  "Overview": {
+    "dataSource": "mongo",
+    "public": true
   }
 }
